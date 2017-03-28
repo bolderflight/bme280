@@ -77,7 +77,7 @@ class BME280{
     uint8_t _bus;
     i2c_pins _pins;
     i2c_pullup _pullups;
-    const uint32_t _i2cRate = 400000;
+    const uint32_t _i2cRate = 400000; // 400 kHz
     bool _userDefI2C;
 
     // spi
@@ -85,7 +85,7 @@ class BME280{
     spi_mosi_pin _mosiPin;
     bool _useSPI;
     const uint8_t SPI_READ = 0x80;
-    const uint32_t SPI_CLOCK = 4000000; // 4 MHz
+    const uint32_t SPI_CLOCK = 10000000; // 10 MHz
 
     // BME280 registers
     const uint8_t WHO_AM_I_REG = 0xD0;
