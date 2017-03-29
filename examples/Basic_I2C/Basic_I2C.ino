@@ -30,10 +30,18 @@ BME280 press(2);
 
 void setup() {
   Serial.begin(115200);
-  delay(10000);
+  delay(5000);
   Serial.println(press.begin());
 }
 
 void loop() {
-
+  float temperature, pressure, humidity;
+  press.getData(&pressure, &temperature, &humidity);
+  Serial.print(temperature);
+  Serial.print("\t");
+  Serial.print(pressure);
+  Serial.print("\t");
+  Serial.print(humidity);
+  Serial.print("\n");
+  delay(10);
 }
