@@ -1,5 +1,5 @@
 /*
-Basic_I2C.ino
+Basic_SPI.ino
 Brian R Taylor
 brian.taylor@bolderflight.com
 2017-03-30 
@@ -24,9 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "BME280.h"
 
-/* A BME280 object with I2C address 0x76 (SDO to GND) */
-/* on Teensy I2C bus 0 */
-BME280 bme(0x76,0);
+/* A BME280 object using SPI chip select pin 10 */
+BME280 bme(10);
 
 int beginStatus;
 
@@ -67,11 +66,11 @@ void loop() {
     humidity = bme.getHumidity();
 
     // print the data
-    Serial.print(pressure);
-    Serial.print("\t");
-    Serial.print(temperature);
-    Serial.print("\t");
-    Serial.println(humidity);
+    // Serial.print(pressure);
+    // Serial.print("\t");
+    // Serial.print(temperature);
+    // Serial.print("\t");
+    // Serial.println(humidity);
 
     // delay a frame
     delay(50);
