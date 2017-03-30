@@ -133,7 +133,7 @@ setSamplingStatus = bme.setSampling(SAMPLING_X4, SAMPLING_X2, SAMPLING_X2);
 **(optional) int setFilter(bme280_iirc iirc)**
 This is an optional function to set the IIR filter coefficient to a value other than the default. This filter is applied to all measurements. The filter is given by the following equation:
 
-*data_filtered = (data_filtered_old * (filter_coefficient - 1) + data) / filter_coefficient *
+*data_filtered = (data_filtered_old &ast; (filter_coefficient - 1) + data) / filter_coefficient*
 
 The following enumerated filter coefficients are supported:
 
