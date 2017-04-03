@@ -177,7 +177,7 @@ setStandbyStatus = bme.setStandby(STANDBY_10_MS);
 ### Common Data Collection Functions
 The functions below are used to collect data from the BME280 sensor. Data is returned scaled to engineering units. Pressure data is returned in units of Pascal (Pa), temperature data in units of degrees Celsius (C), and humidity in units of percent relative humidity (%RH). All of the data returned by the function were collected from the BME280 at the same time, so it is preferable to use the function which returns all of the desired data rather than two separate function calls in order to eliminate potential time skews in your results. For example, it would be preferable to use *getData* to get pressure, temperature, and humidity data rather than call *getPressure* followed by *getTemperature* and *getHumidity*. This preference is because the pressure, temperature, and humidity data returned by *getData* were all sampled simultaneously whereas using *getPressure* followed by *getTemperature* and *getHumidity* could possibly introduce a time skew between the pressure, temperature, and humidity data.
 
-**void getData(float* pressure, float* temperature, float* humidity)**
+**void getData(float&ast; pressure, float&ast; temperature, float&ast; humidity)**
 *getData(float&ast; pressure, float&ast; temperature, float&ast; humidity)* samples the BME280 sensor and returns the pressure (Pa), temperature (C), and humidity (%RH).
 
 ```C++
