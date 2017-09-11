@@ -2,7 +2,6 @@
 BME280.cpp
 Brian R Taylor
 brian.taylor@bolderflight.com
-2017-03-29
 
 Copyright (c) 2017 Bolder Flight Systems
 
@@ -29,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "Arduino.h"
 #include "BME280.h"
 #include "i2c_t3.h"  // I2C library
-#include "SPI.h" // SPI Library
+#include "SPI.h"     // SPI Library
 
 /* BME280 object, input the I2C address and I2C bus */
 BME280::BME280(uint8_t address, uint8_t bus){
@@ -61,13 +60,13 @@ BME280::BME280(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups){
 
 BME280::BME280(uint8_t csPin) {
   _csPin = csPin; // SPI CS Pin
-  _mosiPin = MOSI_PIN_11; // SPI MOSI Pin, set to default
+  _spi = &SPI;    // default to SPI     
   _useSPI = true; // set to use SPI instead of I2C             
 }
 
-BME280::BME280(uint8_t csPin, spi_mosi_pin pin) {
+BME280::BME280(uint8_t csPin, SPIClass *Spi) {
   _csPin = csPin; // SPI CS Pin
-  _mosiPin = pin; // SPI MOSI Pin
+  _spi = Spi;
   _useSPI = true; // set to use SPI instead of I2C          
 }
 
@@ -89,110 +88,8 @@ int BME280::begin() {
     // setting CS pin high
     digitalWriteFast(_csPin,HIGH);
 
-    // Teensy 3.0 || Teensy 3.1/3.2
-    #if defined(__MK20DX128__) || defined(__MK20DX256__)
-
-      // configure and begin the SPI
-      switch( _mosiPin ){
-
-        case MOSI_PIN_7:  // SPI bus 0 alternate 1
-          SPI.setMOSI(7);
-          SPI.setMISO(8);
-          SPI.setSCK(14);
-          SPI.begin();
-          break;
-        case MOSI_PIN_11: // SPI bus 0 default
-          SPI.setMOSI(11);
-          SPI.setMISO(12);
-          SPI.setSCK(13);
-          SPI.begin();
-          break;
-      }
-    #endif
-
-    // Teensy 3.5 || Teensy 3.6 
-    #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
-
-      // configure and begin the SPI
-      switch( _mosiPin ){
-
-        case MOSI_PIN_0:  // SPI bus 1 default
-          SPI1.setMOSI(0);
-          SPI1.setMISO(1);
-          SPI1.setSCK(32);
-          SPI1.begin();
-          break;
-        case MOSI_PIN_7:  // SPI bus 0 alternate 1
-          SPI.setMOSI(7);
-          SPI.setMISO(8);
-          SPI.setSCK(14);
-          SPI.begin();
-          break;
-        case MOSI_PIN_11: // SPI bus 0 default
-          SPI.setMOSI(11);
-          SPI.setMISO(12);
-          SPI.setSCK(13);
-          SPI.begin();
-          break;
-        case MOSI_PIN_21: // SPI bus 1 alternate
-          SPI1.setMOSI(21);
-          SPI1.setMISO(5);
-          SPI1.setSCK(20);
-          SPI1.begin();
-          break;
-        case MOSI_PIN_28: // SPI bus 0 alternate 2
-          SPI.setMOSI(28);
-          SPI.setMISO(39);
-          SPI.setSCK(27);
-          SPI.begin();
-          break;
-        case MOSI_PIN_44: // SPI bus 2 default
-          SPI2.setMOSI(44);
-          SPI2.setMISO(45);
-          SPI2.setSCK(46);
-          SPI2.begin();
-          break;
-        case MOSI_PIN_52: // SPI bus 2 alternate
-          SPI2.setMOSI(52);
-          SPI2.setMISO(51);
-          SPI2.setSCK(53);
-          SPI2.begin();
-          break;
-      }
-    #endif
-
-    // Teensy LC 
-    #if defined(__MKL26Z64__)
-
-      // configure and begin the SPI
-      switch( _mosiPin ){
-
-        case MOSI_PIN_0:  // SPI bus 1 default
-          SPI1.setMOSI(0);
-          SPI1.setMISO(1);
-          SPI1.setSCK(20);
-          SPI1.begin();
-          break;
-        case MOSI_PIN_7:  // SPI bus 0 alternate 1
-          SPI.setMOSI(7);
-          SPI.setMISO(8);
-          SPI.setSCK(14);
-          SPI.begin();
-          break;
-        case MOSI_PIN_11: // SPI bus 0 default
-          SPI.setMOSI(11);
-          SPI.setMISO(12);
-          SPI.setSCK(13);
-          SPI.begin();
-          break;
-        case MOSI_PIN_21: // SPI bus 1 alternate
-          SPI1.setMOSI(21);
-          SPI1.setMISO(5);
-          SPI1.setSCK(20);
-          SPI1.begin();
-          break;
-      }
-    #endif
+    // begin SPI communication
+    _spi->begin();
   }
   else{ // using I2C for communication
 
@@ -491,69 +388,12 @@ bool BME280::writeRegister(uint8_t subAddress, uint8_t data){
 
   /* write data to device */
   if( _useSPI ){
-
-    // Teensy 3.0 || Teensy 3.1/3.2
-    #if defined(__MK20DX128__) || defined(__MK20DX256__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)){
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-    #endif
-
-    // Teensy 3.5 || Teensy 3.6 
-    #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)||(_mosiPin == MOSI_PIN_28)){
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_0)||(_mosiPin == MOSI_PIN_21)){
-        SPI1.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI1.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI1.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI1.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_44)||(_mosiPin == MOSI_PIN_52)){
-        SPI2.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI2.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI2.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI2.endTransaction(); // end the transaction 
-      }
-    #endif
-
-    // Teensy LC 
-    #if defined(__MKL26Z64__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)){
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_0)||(_mosiPin == MOSI_PIN_21)){
-        SPI1.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-        SPI1.transfer(subAddress & ~SPI_READ); // write the register address
-        SPI1.transfer(data); // write the data
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI1.endTransaction(); // end the transaction
-      }
-    #endif
+    _spi->beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0)); // begin the transaction
+    digitalWriteFast(_csPin,LOW); // select the BME280 chip
+    _spi->transfer(subAddress & ~SPI_READ); // write the register address
+    _spi->transfer(data); // write the data
+    digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
+    _spi->endTransaction(); // end the transaction
   }
   else{
     i2c_t3(_bus).beginTransmission(_address); // open the device
@@ -580,106 +420,16 @@ bool BME280::writeRegister(uint8_t subAddress, uint8_t data){
 void BME280::readRegisters(uint8_t subAddress, uint8_t count, uint8_t* dest){
 
   if( _useSPI ){
+    // begin the transaction
+    _spi->beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
+    digitalWriteFast(_csPin,LOW); // select the BME280 chip
+    _spi->transfer(subAddress | SPI_READ); // specify the starting register address
+    for(uint8_t i = 0; i < count; i++){
+      dest[i] = _spi->transfer(0x00); // read the data
+    }
 
-    // Teensy 3.0 || Teensy 3.1/3.2
-    #if defined(__MK20DX128__) || defined(__MK20DX256__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)){
-        // begin the transaction
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-    #endif
-
-    // Teensy 3.5 || Teensy 3.6 
-    #if defined(__MK64FX512__) || defined(__MK66FX1M0__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)||(_mosiPin == MOSI_PIN_28)){
-        // begin the transaction
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_0)||(_mosiPin == MOSI_PIN_21)){
-        // begin the transaction
-        SPI1.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI1.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI1.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_44)||(_mosiPin == MOSI_PIN_52)){
-        // begin the transaction
-        SPI2.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI2.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI2.endTransaction(); // end the transaction
-      }
-    #endif
-
-    // Teensy LC 
-    #if defined(__MKL26Z64__)
-
-      if((_mosiPin == MOSI_PIN_11)||(_mosiPin == MOSI_PIN_7)){
-        // begin the transaction
-        SPI.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI.endTransaction(); // end the transaction
-      }
-      else if((_mosiPin == MOSI_PIN_0)||(_mosiPin == MOSI_PIN_21)){
-        // begin the transaction
-        SPI1.beginTransaction(SPISettings(SPI_CLOCK, MSBFIRST, SPI_MODE0));
-        digitalWriteFast(_csPin,LOW); // select the BME280 chip
-
-        SPI1.transfer(subAddress | SPI_READ); // specify the starting register address
-
-        for(uint8_t i = 0; i < count; i++){
-          dest[i] = SPI1.transfer(0x00); // read the data
-        }
-
-        digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
-        SPI1.endTransaction(); // end the transaction
-      }
-
-    #endif
+    digitalWriteFast(_csPin,HIGH); // deselect the BME280 chip
+    _spi->endTransaction(); // end the transaction
   }
   else{
     i2c_t3(_bus).beginTransmission(_address); // open the device

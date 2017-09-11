@@ -66,11 +66,11 @@ void loop() {
     humidity = bme.getHumidity();
 
     // print the data
-    // Serial.print(pressure);
-    // Serial.print("\t");
-    // Serial.print(temperature);
-    // Serial.print("\t");
-    // Serial.println(humidity);
+    Serial.print(pressure);
+    Serial.print("\t");
+    Serial.print(temperature);
+    Serial.print("\t");
+    Serial.println(humidity);
 
     // delay a frame
     delay(50);
