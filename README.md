@@ -47,7 +47,7 @@ A BME280 object should be declared, specifying the Teensy chip select pin used. 
 BME280 bme(10);
 ```
 
-**BME280(uint8_t csPin, SPICLass *Spi)**
+**BME280(uint8_t csPin, SPIClass &ast;Spi)**
 Optionally, the SPI bus can be specified. This allows selecting SPI buses other than SPI Bus 0. For example, the following code declares a BME280 object called *bme* with a BME280 sensor located on chip select pin 10 and SPI bus 2.
 
 ```C++
