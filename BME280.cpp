@@ -30,6 +30,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "i2c_t3.h"  // I2C library
 #include "SPI.h"     // SPI Library
 
+/* Default constructor */
+BME280::BME280(){}
+
 /* BME280 object, input the I2C address and I2C bus */
 BME280::BME280(uint8_t address, uint8_t bus){
   _address = address; // I2C address
@@ -65,6 +68,43 @@ BME280::BME280(uint8_t csPin) {
 }
 
 BME280::BME280(uint8_t csPin, SPIClass *Spi) {
+  _csPin = csPin; // SPI CS Pin
+  _spi = Spi;
+  _useSPI = true; // set to use SPI instead of I2C          
+}
+
+void BME280::configure(uint8_t address, uint8_t bus){
+  _address = address; // I2C address
+  _bus = bus; // I2C bus
+  _userDefI2C = false; // automatic I2C setup
+  _useSPI = false; // set to use I2C instead of SPI
+}
+
+void BME280::configure(uint8_t address, uint8_t bus, i2c_pins pins){
+  _address = address; // I2C address
+  _bus = bus; // I2C bus
+  _pins = pins; // I2C pins
+  _pullups = I2C_PULLUP_EXT; // I2C pullups
+  _userDefI2C = true; // user defined I2C
+  _useSPI = false; // set to use I2C instead of SPI
+}
+
+void BME280::configure(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups){
+  _address = address; // I2C address
+  _bus = bus; // I2C bus
+  _pins = pins; // I2C pins
+  _pullups = pullups; // I2C pullups
+  _userDefI2C = true; // user defined I2C
+  _useSPI = false; // set to use I2C instead of SPI
+}
+
+void BME280::configure(uint8_t csPin) {
+  _csPin = csPin; // SPI CS Pin
+  _spi = &SPI;    // default to SPI     
+  _useSPI = true; // set to use SPI instead of I2C             
+}
+
+void BME280::configure(uint8_t csPin, SPIClass *Spi) {
   _csPin = csPin; // SPI CS Pin
   _spi = Spi;
   _useSPI = true; // set to use SPI instead of I2C          

@@ -67,11 +67,17 @@ enum bme280_mode
 
 class BME280{
   public:
+    BME280();
     BME280(uint8_t address, uint8_t bus);
     BME280(uint8_t address, uint8_t bus, i2c_pins pins);
     BME280(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
     BME280(uint8_t csPin);
     BME280(uint8_t csPin, SPIClass *Spi);
+    void configure(uint8_t address, uint8_t bus);
+    void configure(uint8_t address, uint8_t bus, i2c_pins pins);
+    void configure(uint8_t address, uint8_t bus, i2c_pins pins, i2c_pullup pullups);
+    void configure(uint8_t csPin);
+    void configure(uint8_t csPin, SPIClass *Spi);
     int begin();
     int setSampling(bme280_sampling Psampling, bme280_sampling Tsampling, bme280_sampling Hsampling);
     int setFilter(bme280_iirc iirc);
