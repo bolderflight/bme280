@@ -1,5 +1,5 @@
 # BME280
-Arduino ibrary for communicating with the [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) environmental sensor.
+Arduino library for communicating with the [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) environmental sensor.
 
 # Description
 The Bosch Sensortec [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) is an integrated environmental sensor, which combines high linearity, high accuracy sensors for pressure, temperature, and humidity in a compact LGA package. The humidity sensor features an extremely fast response time and high accuracy over a wide temperature range. The pressure sensor is an absolute barometric pressure sensor with features exceptionally high accuracy and resolution at very low noise. The integrated temperature sensor has been optimized for very low noise and high resolution. Pressure, temperature, and humidity measurements can be useful for applications involving unmanned vehicles (indicated and true airspeed, altitude, and density altitude), indoor navigation (floor detection), outdoor navigation (altitudes and airspeeds, dead-reckoning, GPS time to first fix improvements) as well as weather monitoring and home automation.
@@ -18,7 +18,7 @@ This library supports both I2C and SPI communication with the BME280. The *BME28
 ### I2C Object Declaration
 
 **BME280(TwoWire &bus,uint8_t address)**
-An BME280 object should be declared, specifying the I2C bus and the BME280 I2C address. The BME280 I2C address will be 0x76 if the SDO pin is grounded or 0x77 if the SDO pin is pulled high. For example, the following code declares a BME280 object called *bme* with a BME280 sensor located on I2C bus 0 with a sensor address of 0x76 (SDO grounded).
+A BME280 object should be declared, specifying the I2C bus and the BME280 I2C address. The BME280 I2C address will be 0x76 if the SDO pin is grounded or 0x77 if the SDO pin is pulled high. For example, the following code declares a BME280 object called *bme* with a BME280 sensor located on I2C bus 0 with a sensor address of 0x76 (SDO grounded).
 
 ```C++
 BME280 bme(Wire,0x76);
@@ -34,7 +34,7 @@ BME280 bme(SPI,10);
 ```
 
 ### Common Setup Functions
-The following functions are used to setup the BME280 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setPressureOversampling*, *setTemperatureOversampling*, *setHumidityOversampling*, *setIirCoefficient* and *setStandbyTime* functions can be used, following *begin*, to setup the oversampling, IIR filtering, and standby times. The optional *setForcedMode* and *setNormalMode* functions can be used to change the sensor to forced or normal mode; the sensor enters normal mode by default.If these optional functions are not used, oversampling, IIR filtering, and standby times are set to default values, which should be good for a wide range of applications, and are discussed in greater detail below.
+The following functions are used to setup the BME280 sensor. These should be called once before data collection, typically this is done in the Arduino *void setup()* function. The *begin* function should always be used. Optionally, the *setPressureOversampling*, *setTemperatureOversampling*, *setHumidityOversampling*, *setIirCoefficient* and *setStandbyTime* functions can be used, following *begin*, to setup the oversampling, IIR filtering, and standby times. The optional *setForcedMode* and *setNormalMode* functions can be used to change the sensor to forced or normal mode. If these optional functions are not used, oversampling, IIR filtering, and standby times are set to default values and normal mode is used, which should be good for a wide range of applications, and are discussed in greater detail below.
 
 **int begin()**
 This should be called in your setup function. It initializes communication with the BME280 and sets up the sensor for reading data. This function returns a positive value on a successful initialization and returns a negative value on an unsuccesful initialization. If unsuccessful, please check your wiring or try resetting power to the sensor. The following is an example of setting up the BME280.
@@ -140,7 +140,7 @@ status = bme.setStandbyTime(BME280::STANDBY_10_MS);
 ```
 
 **(optional) int setForcedMode()**
-This is an optional function to set the operational mode of the sensor to forced mode. The BME280 has two modes of operation, normal and forced. In normal mode, the sensor takes regular measurements at intervals set by the standby time. When the *readSensor* function is called, detailed below, it simply gets the most recent data values from the sensor. In forced mode, when the *readSensor* function called, the sensor is commanded to collect data, the microcontroller waits for the data to become available, and then gets the data from the sensor. Forced mode is useful for taking measurements at a very low rate (i.e. taking pressure measurements once per minute for a weather station) and for taking measurements that need to be tightly syncronized with the microcontroller. It is recommended not to use the IIR filtering built in to the BME280 in forced mode. The advantage of normal mode is that it reduces the microcontroller workload.
+This is an optional function to set the operational mode of the sensor to forced mode. The BME280 has two modes of operation, normal and forced. In normal mode, the sensor takes regular measurements at intervals set by the standby time. When the *readSensor* function is called, detailed below, it simply gets the most recent data values from the sensor. In forced mode, when the *readSensor* function called, the sensor is commanded to collect data, the microcontroller waits for the data to become available, and then gets the data from the sensor. Forced mode is useful for taking measurements at a very low rate (i.e. taking pressure measurements once per minute for a weather station) and for taking measurements that need to be tightly synchronized with the microcontroller. It is recommended not to use the IIR filtering built in to the BME280 in forced mode. The advantage of normal mode is that it reduces the microcontroller workload.
 
 Normal mode is set by default. This function switches the BME280 into forced mode. The data collection process remains the same; however, the time necessary for *readSensor* is significantly greater in forced mode than normal mode. Below is an example of selecting forced mode. This function returns a positive value on success and a negative value on failure.
 
@@ -160,31 +160,27 @@ status = bme.setNormalMode();
 ### Common Data Collection Functions
 The functions below are used to collect data from the BME280 sensor. Data is returned scaled to engineering units. Pressure data is returned in units of Pascal (Pa), temperature data in units of degrees Celsius (C), and humidity in units of percent relative humidity (%RH). *readSensor* is used to read the sensor and store the newest data in a buffer, it should be called every time you would like to retrieve data from the sensor. *getPressure_Pa*, *getTemperature_C*, and *getHumidity_RH* return the pressure, temperature, and humidity values from that buffer.
 
-**int readSensor()**
-*readSensor()* reads the sensor and stores the newest data in a buffer, it should be called every time you would like to retrieve data from the sensor. This function returns a positive value on success and a negative value on failure.
+**int readSensor()** reads the sensor and stores the newest data in a buffer, it should be called every time you would like to retrieve data from the sensor. This function returns a positive value on success and a negative value on failure.
 
 ```C++
 bme.readSensor();
 ```
 
-**float getPressure_Pa()**
-*getPressure_Pa()* gets the pressure value from the data buffer and returns it in units of Pascal.
+**float getPressure_Pa()** gets the pressure value from the data buffer and returns it in units of Pascal.
 
 ```C++
 float pressure;
 pressure = bme.getPressure_Pa();
 ```
 
-**float getTemperature_C()**
-*getTemperature_C()* gets the temperature value from the data buffer and returns it in units of degrees Celsius.
+**float getTemperature_C()** gets the temperature value from the data buffer and returns it in units of degrees Celsius.
 
 ```C++
 float temperature;
 temperature = bme.getTemperature_C();
 ```
 
-**float getHumidity_RH()**
-*getHumidity_RH()* gets the humidity value from the data buffer and returns it in units of percent relative humidity.
+**float getHumidity_RH()** gets the humidity value from the data buffer and returns it in units of percent relative humidity.
 
 ```C++
 float humidity;
