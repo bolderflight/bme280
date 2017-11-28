@@ -2,7 +2,6 @@
 Basic_I2C.ino
 Brian R Taylor
 brian.taylor@bolderflight.com
-2017-03-30 
 
 Copyright (c) 2017 Bolder Flight Systems
 
@@ -26,75 +25,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 /* A BME280 object with I2C address 0x76 (SDO to GND) */
 /* on Teensy I2C bus 0 */
-BME280 bme(0x76,0);
-
-int beginStatus;
+BME280 bme(Wire,0x76);
 
 void setup() {
   // serial to display data
   Serial.begin(115200);
-  delay(5000);
+  while(!Serial){}
 
   // begin communication with
   // BME280 and set to default
   // sampling, iirc, and standby settings
-  beginStatus = bme.begin();
+  if (bme.begin() < 0) {
+    Serial.println("Error communicating with sensor, check wiring and I2C address");
+    while(1){}
+  }
 }
 
 void loop() {
-  float pressure, temperature, humidity;
+  // read the sensor
+  bme.readSensor();
 
-  if(beginStatus<0){
-    delay(1000);
-    Serial.println("BME280 initialization unsuccessful");
-    Serial.println("Check wiring or try cycling power");
-    delay(10000);
-  } else {
-    /* get the individual data sources */
-    /* This approach is only recommended if you only
-     *  would like the specified data source (i.e. only
-     *  want accel data) since multiple data sources
-     *  would have a time skew between them.
-     */
-
-    // get the pressure data (Pa)
-    pressure = bme.getPressure();
-
-    // get the temperature data (C)
-    temperature = bme.getTemperature();
-
-    // get the humidity data (%RH)
-    humidity = bme.getHumidity();
-
-    // print the data
-    Serial.print(pressure);
-    Serial.print("\t");
-    Serial.print(temperature);
-    Serial.print("\t");
-    Serial.println(humidity);
-
-    // delay a frame
-    delay(50);
-
-    /* get multiple data sources */
-    /* In this approach we get data from multiple data
-     *  sources (i.e. pressure, temperature, and humidity). 
-     *  This is the recommended approach since there is no 
-     *  time skew between sources - they are all synced.
-     */
-
-    // get the pressure (Pa), temperature (C),
-    // and humidity data (%RH) all at once
-    bme.getData(&pressure,&temperature,&humidity);
-
-    // print the data
-    Serial.print(pressure);
-    Serial.print("\t");
-    Serial.print(temperature);
-    Serial.print("\t");
-    Serial.println(humidity);
-
-    // delay a frame
-    delay(50);
-  }
+  // displaying the data
+  Serial.print(bme.getPressure_Pa(),6);
+  Serial.print("\t");
+  Serial.print(bme.getTemperature_C(),2);
+  Serial.print("\t");
+  Serial.println(bme.getHumidity_RH(),2);
+  delay(100);
 }
