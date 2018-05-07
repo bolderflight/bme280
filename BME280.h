@@ -25,7 +25,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define BME280_h
 
 #include "Arduino.h"
-#include "Wire.h"  // I2C library
+// Teensy 3.0 || Teensy 3.1/3.2 || Teensy 3.5 || Teensy 3.6 || Teensy LC 
+#if defined(__MK20DX128__) || defined(__MK20DX256__) || defined(__MK64FX512__) || \
+    defined(__MK66FX1M0__) || defined(__MKL26Z64__)
+    #include "i2c_t3.h"     // I2C library
+    #define I2Ccom i2c_t3   // Changing reference
+#else
+    #include "Wire.h"       // I2C library
+    #define I2Ccom TwoWire  // Changing reference
+#endif
 #include "SPI.h"   // SPI library
 
 class BME280{
@@ -63,7 +71,7 @@ class BME280{
       MODE_FORCED = 0x01,
       MODE_NORMAL = 0x03
     };
-    BME280(TwoWire &bus,uint8_t address);
+    BME280(I2Ccom &bus,uint8_t address);
     BME280(SPIClass &bus,uint8_t csPin);
     int begin();
     int setPressureOversampling(Sampling pressureSampling);
@@ -101,7 +109,7 @@ class BME280{
     uint8_t _buffer[8];
     // i2c
     uint8_t _address;
-    TwoWire *_i2c;
+    I2Ccom *_i2c;
     const uint32_t _i2cRate = 400000; // 400 kHz
     size_t _numBytes; // number of bytes received from I2C
     // spi
