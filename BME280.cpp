@@ -25,7 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "BME280.h"
 
 /* BME280 object, input the I2C bus and address */
-BME280::BME280(TwoWire &bus,uint8_t address){
+BME280::BME280(I2Ccom &bus,uint8_t address){
   _i2c = &bus; // I2C bus
   _address = address; // I2C address
   _useSPI = false; // set to use I2C
