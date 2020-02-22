@@ -11,3 +11,4 @@ readSensor	KEYWORD2
 getPressure_Pa	KEYWORD2
 getTemperature_C	KEYWORD2
 getHumidity_RH	KEYWORD2
+getAltitude_M	KEYWORD2
