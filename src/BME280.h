@@ -77,6 +77,7 @@ class BME280{
     float getPressure_Pa();
     float getTemperature_C();
     float getHumidity_RH();
+	float BME280::getAltitude_M();
   private:
     // struct to hold sensor data
     struct Data {

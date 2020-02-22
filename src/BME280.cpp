@@ -232,6 +232,13 @@ float BME280::getHumidity_RH(){
   return _data.Humidity_RH;
 }
 
+/* returns the altitude value, M */
+float BME280::getAltitude_M() {
+  float altitude = powf(101325.0f / this->getPressue_Pa(), 0.190234f) - 1;
+  altitude *= ((this->getTemperature_C() + 273.15f) / 0.0065f);
+  return altitude;
+}
+
 /* compensates the temperature measurement from the BME280 */
 void BME280::compensateTemperature(int32_t temperatureCounts, int32_t* t_fine, float* temperature) {
   _tvar1=((((temperatureCounts>>3)-((int32_t)_dig_T1<<1)))*((int32_t)_dig_T2))>>11;
