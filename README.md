@@ -189,6 +189,13 @@ float humidity;
 humidity = bme.getHumidity_RH();
 ```
 
+**float getAltitude_M()** calculates the current altitude in meters.
+
+```C++
+float altitude;
+altitude = bme.getAltitude_M();
+```
+
 ## Example List
 * **Basic_I2C**: demonstrates declaring a *BME280* object, initializing the sensor, and collecting data. I2C is used to communicate with the BME280 sensor.
 * **Basic_SPI**: demonstrates declaring a *BME280* object, initializing the sensor, and collecting data. SPI is used to communicate with the BME280 sensor.
