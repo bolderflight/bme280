@@ -234,7 +234,7 @@ float BME280::getHumidity_RH(){
 
 /* returns the altitude value, M */
 float BME280::getAltitude_M() {
-  float altitude = powf(101325.0f / this->getPressue_Pa(), 0.190234f) - 1;
+  float altitude = powf(101325.0f / this->getPressure_Pa(), 0.190234f) - 1;
   altitude *= ((this->getTemperature_C() + 273.15f) / 0.0065f);
   return altitude;
 }
