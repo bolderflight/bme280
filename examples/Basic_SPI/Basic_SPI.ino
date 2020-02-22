@@ -50,6 +50,8 @@ void loop() {
   Serial.print("\t");
   Serial.print(bme.getTemperature_C(),2);
   Serial.print("\t");
-  Serial.println(bme.getHumidity_RH(),2);
+  Serial.print(bme.getHumidity_RH(),2);
+  Serial.print("\t");
+  Serial.println(bme.getAltitude_M(),2);
   delay(100);
 }
