@@ -4,22 +4,16 @@ if (DEFINED MCU)
 	set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/cmake/cortex.cmake")
 endif()
 # Project information
-project(BME280
-	VERSION 1.0
+project(Bme280
+	VERSION 1.0.0
 	DESCRIPTION "BME-280 sensor driver"
-	LANGUAGES C CXX
+	LANGUAGES CXX
 )
 if (DEFINED MCU)
 	# Grab the processor and set up definitions and compile options
 	include(${CMAKE_SOURCE_DIR}/cmake/config_mcu.cmake)
 	configMcu(${MCU})
-	# Fetch types
 	include(FetchContent)
-	FetchContent_Declare(
-		types
-		GIT_REPOSITORY 	git@gitlab.com:bolderflight/software/types.git
-	)
-	FetchContent_MakeAvailable(types)
 	# Fetch core
 	FetchContent_Declare(
 		core
@@ -35,31 +29,46 @@ if (DEFINED MCU)
 	target_link_libraries(bme280
 		PUBLIC
 			core
-			types
 	)
 	# Setup include directories 
 	target_include_directories(bme280 PUBLIC 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		$<INSTALL_INTERFACE:include>
 	)
+
 endif()
 # Example and test if this project is built separately
 if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 	if (DEFINED MCU)
-		# Add the spi example target
-		add_executable(bme280_example examples/bme280_example.cc)
+		# Add the i2c example target
+		add_executable(i2c_example examples/i2c.cc)
 		# Add the includes
-		target_include_directories(bme280_example PUBLIC 
+		target_include_directories(i2c_example PUBLIC 
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			$<INSTALL_INTERFACE:include>
 		)
 		# Link libraries to the example target
-		target_link_libraries(bme280_example
+		target_link_libraries(i2c_example
 			PRIVATE 
 			bme280
 		)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
-		FlashMcu(bme280_example ${MCU})
+		FlashMcu(i2c_example ${MCU})
+		# Add the spi example target
+		add_executable(spi_example examples/i2c.cc)
+		# Add the includes
+		target_include_directories(spi_example PUBLIC 
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:include>
+		)
+		# Link libraries to the example target
+		target_link_libraries(spi_example
+			PRIVATE 
+			bme280
+		)
+		# Add hex and upload targets
+		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
+		FlashMcu(spi_example ${MCU})
 	endif()
 endif()

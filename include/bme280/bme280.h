@@ -8,7 +8,6 @@
 #ifndef INCLUDE_BME280_BME280_H_
 #define INCLUDE_BME280_BME280_H_
 
-#include "types/types.h"
 #include "core/core.h"
 
 namespace sensors {
@@ -51,8 +50,8 @@ class Bme280 {
   IirCoefficient iir_coefficient();
   bool standby_time(StandbyTime standby);
   StandbyTime standby_time();
-  Pressure pressure();
-  Temperature die_temperature();
+  float pressure_pa();
+  float die_temperature_c();
 
  private:
   enum Interface {
@@ -70,7 +69,7 @@ class Bme280 {
   /* Configuration */
   Oversampling t_samp_ = OVERSAMPLING_2;
   Oversampling p_samp_ = OVERSAMPLING_16;
-  IirCoefficient iirc_= IIRC_16;
+  IirCoefficient iirc_ = IIRC_16;
   StandbyTime standby_ = STANDBY_0_5_MS;
   static constexpr uint8_t WHOAMI_ = 0x60;
   /* Data */
@@ -79,8 +78,8 @@ class Bme280 {
   uint16_t dp1_;
   int16_t dp2_, dp3_, dp4_, dp5_, dp6_, dp7_, dp8_, dp9_;
   int32_t tfine_;
-  Pressure p_;
-  Temperature t_;
+  float p_;
+  float t_;
   /* Registers */
   static constexpr uint8_t WHO_AM_I_REG_ = 0xD0;
   static constexpr uint8_t RESET_REG_ = 0xE0;
@@ -93,7 +92,7 @@ class Bme280 {
   /* Settings */
   static constexpr uint8_t SOFT_RESET_ = 0xB6;
   static constexpr uint8_t MODE_SLEEP_ = 0x00;
-  static constexpr uint8_t MODE_NORMAL_ = 0x03; 
+  static constexpr uint8_t MODE_NORMAL_ = 0x03;
   bool Configure();
   float CompensateTemperature(int32_t counts);
   float CompensatePressure(int32_t counts);
@@ -102,6 +101,5 @@ class Bme280 {
 };
 
 }  // namespace sensors
-
 
 #endif  // INCLUDE_BME280_BME280_H_

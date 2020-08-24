@@ -6,6 +6,7 @@
 */
 
 #include "bme280/bme280.h"
+#include "core/core.h"
 
 namespace sensors {
 
@@ -78,8 +79,8 @@ bool Bme280::Read() {
   }
   uint32_t pressure_counts = static_cast<uint32_t>(data_buffer[0]) << 12 | static_cast<uint32_t>(data_buffer[1]) << 4 | static_cast<uint32_t>(data_buffer[2]) & 0xF0 >> 4;
   uint32_t temperature_counts = static_cast<uint32_t>(data_buffer[3]) << 12 | static_cast<uint32_t>(data_buffer[4]) << 4 | static_cast<uint32_t>(data_buffer[5]) & 0xF0 >> 4;
-  t_.c(CompensateTemperature(temperature_counts));
-  p_.pa(CompensatePressure(pressure_counts));
+  t_ = CompensateTemperature(temperature_counts);
+  p_ = CompensatePressure(pressure_counts);
   return true;
 }
 bool Bme280::temperature_oversampling(Oversampling oversampling) {
@@ -110,10 +111,10 @@ bool Bme280::standby_time(StandbyTime standby) {
 Bme280::StandbyTime Bme280::standby_time() {
   return standby_;
 }
-Pressure Bme280::pressure() {
+float Bme280::pressure_pa() {
   return p_;
 }
-Temperature Bme280::die_temperature() {
+float Bme280::die_temperature_c() {
   return t_;
 }
 float Bme280::CompensateTemperature(int32_t counts) {
@@ -131,7 +132,7 @@ float Bme280::CompensatePressure(int32_t counts) {
   var1 = ((var1 * var1 * (int64_t)dp3_) >> 8) + ((var1 * (int64_t)dp2_) << 12);
   var1 = (((((int64_t)1) << 47)+ var1)) * ((int64_t)dp1_) >> 33;
   if (var1 == 0) {
-    return 0; // avoid exception caused by division by zero
+    return 0;  // avoid exception caused by division by zero
   }
   int64_t p = 1048576 - counts;
   p = (((p << 31) - var2) * 3125) / var1;
