@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Bme280
-	VERSION 1.0.2
+	VERSION 1.0.3
 	DESCRIPTION "BME-280 sensor driver"
 	LANGUAGES CXX
 )
@@ -57,7 +57,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
 		FlashMcu(i2c_example ${MCU})
 		# Add the spi example target
-		add_executable(spi_example examples/i2c.cc)
+		add_executable(spi_example examples/spi.cc)
 		# Add the includes
 		target_include_directories(spi_example PUBLIC 
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
