@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Bme280
-	VERSION 1.0.3
+	VERSION 1.0.4
 	DESCRIPTION "BME-280 sensor driver"
 	LANGUAGES CXX
 )

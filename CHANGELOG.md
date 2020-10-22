@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.4
+- Switched to SPI mode 3 for better interoperability with other sensors.
+
 ## v1.0.3
 - SPI example was pointing to the I2C example source. Updated so the target and source match correctly.
 
