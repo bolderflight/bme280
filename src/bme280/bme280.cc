@@ -168,7 +168,7 @@ bool Bme280::WriteRegister(uint8_t reg, uint8_t data) {
     i2c_->write(data);
     i2c_->endTransmission();
   } else {
-    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE0));
+    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
     digitalWriteFast(conn_, LOW);
     spi_->transfer(reg & ~SPI_READ_);
     spi_->transfer(data);
@@ -196,7 +196,7 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
       return false;
     }
   } else {
-    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE0));
+    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
     digitalWriteFast(conn_, LOW);
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
