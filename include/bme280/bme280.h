@@ -38,7 +38,11 @@ class Bme280 {
     STANDBY_10_MS = 0x06,
     STANDBY_20_MS = 0x07
   };
+  #if defined(__IMXRT1062__)
+  Bme280(TwoWire *bus, uint8_t addr);
+  #else
   Bme280(i2c_t3 *bus, uint8_t addr);
+  #endif
   Bme280(SPIClass *bus, uint8_t cs);
   bool Begin();
   bool Read();
@@ -60,7 +64,11 @@ class Bme280 {
   };
   /* Communications interface */
   Interface iface_;
+  #if defined(__IMXRT1062__)
+  TwoWire *i2c_;
+  #else
   i2c_t3 *i2c_;
+  #endif
   SPIClass *spi_;
   uint8_t conn_;
   static constexpr uint32_t SPI_CLOCK_ = 10000000;

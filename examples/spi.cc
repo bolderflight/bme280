@@ -7,7 +7,7 @@
 
 #include "bme280/bme280.h"
 
-sensors::Bme280 bme(&SPI, 26);
+sensors::Bme280 bme(&SPI, 10);
 
 int main() {
   Serial.begin(115200);
