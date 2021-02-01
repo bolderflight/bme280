@@ -9,8 +9,11 @@
 #include "core/core.h"
 
 namespace sensors {
-
+#if defined(__IMXRT1062__)
+Bme280::Bme280(TwoWire *bus, uint8_t addr) {
+#else
 Bme280::Bme280(i2c_t3 *bus, uint8_t addr) {
+#endif
   iface_ = I2C;
   i2c_ = bus;
   conn_ = addr;
@@ -190,7 +193,9 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
     if (bytes_rx == count) {
-      i2c_->read(data, count);
+      for (std::size_t i = 0; i < bytes_rx; i++) {
+        data[i] = i2c_->read();
+      }
       return true;
     } else {
       return false;

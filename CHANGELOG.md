@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.0.5
+- Added support for Teensy 4.x
+
 ## v1.0.4
 - Switched to SPI mode 3 for better interoperability with other sensors.
 
