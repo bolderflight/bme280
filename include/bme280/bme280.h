@@ -2,7 +2,25 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2020 Bolder Flight Systems
+* Copyright (c) 2021 Bolder Flight Systems Inc
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the “Software”), to
+* deal in the Software without restriction, including without limitation the
+* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+* sell copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+* IN THE SOFTWARE.
 */
 
 #ifndef INCLUDE_BME280_BME280_H_
@@ -38,24 +56,20 @@ class Bme280 {
     STANDBY_10_MS = 0x06,
     STANDBY_20_MS = 0x07
   };
-  #if defined(__IMXRT1062__)
   Bme280(TwoWire *bus, uint8_t addr);
-  #else
-  Bme280(i2c_t3 *bus, uint8_t addr);
-  #endif
   Bme280(SPIClass *bus, uint8_t cs);
   bool Begin();
   bool Read();
-  bool temperature_oversampling(Oversampling oversampling);
-  Oversampling temperature_oversampling();
-  bool pressure_oversampling(Oversampling oversampling);
-  Oversampling pressure_oversampling();
-  bool iir_coefficient(IirCoefficient iir);
-  IirCoefficient iir_coefficient();
-  bool standby_time(StandbyTime standby);
-  StandbyTime standby_time();
-  float pressure_pa();
-  float die_temperature_c();
+  bool ConfigTempOversampling(const Oversampling oversampling);
+  inline Oversampling temp_oversampling() const {return t_samp_;}
+  bool ConfigPresOversampling(const Oversampling oversampling);
+  inline Oversampling pres_oversampling() const {return p_samp_;}
+  bool ConfigIir(const IirCoefficient iir);
+  inline IirCoefficient iir() const {return iirc_;}
+  bool ConfigStandbyTime(const StandbyTime standby);
+  inline StandbyTime standby_time() const {return standby_;}
+  inline float pressure_pa() const {return p_;}
+  inline float die_temperature_c() const {return t_;}
 
  private:
   enum Interface {
@@ -64,11 +78,7 @@ class Bme280 {
   };
   /* Communications interface */
   Interface iface_;
-  #if defined(__IMXRT1062__)
   TwoWire *i2c_;
-  #else
-  i2c_t3 *i2c_;
-  #endif
   SPIClass *spi_;
   uint8_t conn_;
   static constexpr uint32_t SPI_CLOCK_ = 10000000;

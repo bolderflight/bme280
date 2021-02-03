@@ -2,18 +2,33 @@
 * Brian R Taylor
 * brian.taylor@bolderflight.com
 * 
-* Copyright (c) 2020 Bolder Flight Systems
+* Copyright (c) 2021 Bolder Flight Systems Inc
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the “Software”), to
+* deal in the Software without restriction, including without limitation the
+* rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+* sell copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+* IN THE SOFTWARE.
 */
 
 #include "bme280/bme280.h"
 #include "core/core.h"
 
 namespace sensors {
-#if defined(__IMXRT1062__)
+
 Bme280::Bme280(TwoWire *bus, uint8_t addr) {
-#else
-Bme280::Bme280(i2c_t3 *bus, uint8_t addr) {
-#endif
   iface_ = I2C;
   i2c_ = bus;
   conn_ = addr;
@@ -75,54 +90,42 @@ bool Bme280::Begin() {
   return Configure();
 }
 bool Bme280::Read() {
-  uint8_t data_buffer[6];
+  uint8_t buf[6];
   /* Read the data */
-  if (!ReadRegisters(DATA_REG_, sizeof(data_buffer), data_buffer)) {
+  if (!ReadRegisters(DATA_REG_, sizeof(buf), buf)) {
     return false;
   }
-  uint32_t pressure_counts = static_cast<uint32_t>(data_buffer[0]) << 12 | static_cast<uint32_t>(data_buffer[1]) << 4 | static_cast<uint32_t>(data_buffer[2]) & 0xF0 >> 4;
-  uint32_t temperature_counts = static_cast<uint32_t>(data_buffer[3]) << 12 | static_cast<uint32_t>(data_buffer[4]) << 4 | static_cast<uint32_t>(data_buffer[5]) & 0xF0 >> 4;
+  uint32_t pressure_counts = static_cast<uint32_t>(buf[0]) << 12 |
+                             static_cast<uint32_t>(buf[1]) << 4 |
+                             static_cast<uint32_t>(buf[2]) & 0xF0 >> 4;
+  uint32_t temperature_counts = static_cast<uint32_t>(buf[3]) << 12 |
+                                static_cast<uint32_t>(buf[4]) << 4 |
+                                static_cast<uint32_t>(buf[5]) & 0xF0 >> 4;
   t_ = CompensateTemperature(temperature_counts);
   p_ = CompensatePressure(pressure_counts);
   return true;
 }
-bool Bme280::temperature_oversampling(Oversampling oversampling) {
+bool Bme280::ConfigTempOversampling(const Oversampling oversampling) {
   t_samp_ = oversampling;
   return Configure();
 }
-Bme280::Oversampling Bme280::temperature_oversampling() {
-  return t_samp_;
-}
-bool Bme280::pressure_oversampling(Oversampling oversampling) {
+bool Bme280::ConfigPresOversampling(const Oversampling oversampling) {
   p_samp_ = oversampling;
   return Configure();
 }
-Bme280::Oversampling Bme280::pressure_oversampling() {
-  return p_samp_;
-}
-bool Bme280::iir_coefficient(IirCoefficient iir) {
+bool Bme280::ConfigIir(const IirCoefficient iir) {
   iirc_ = iir;
   return Configure();
 }
-Bme280::IirCoefficient Bme280::iir_coefficient() {
-  return iirc_;
-}
-bool Bme280::standby_time(StandbyTime standby) {
+bool Bme280::ConfigStandbyTime(const StandbyTime standby) {
   standby_ = standby;
   return Configure();
 }
-Bme280::StandbyTime Bme280::standby_time() {
-  return standby_;
-}
-float Bme280::pressure_pa() {
-  return p_;
-}
-float Bme280::die_temperature_c() {
-  return t_;
-}
 float Bme280::CompensateTemperature(int32_t counts) {
-  int32_t var1 = ((((counts >> 3) - ((int32_t)dt1_ << 1))) * ((int32_t)dt2_)) >> 11;
-  int32_t var2 = (((((counts >> 4) - ((int32_t)dt1_)) * ((counts >> 4) - ((int32_t)dt1_))) >> 12) * ((int32_t)dt3_)) >> 14;
+  int32_t var1 = ((((counts >> 3) - ((int32_t)dt1_ << 1))) *
+                 ((int32_t)dt2_)) >> 11;
+  int32_t var2 = (((((counts >> 4) - ((int32_t)dt1_)) * ((counts >> 4) -
+                 ((int32_t)dt1_))) >> 12) * ((int32_t)dt3_)) >> 14;
   tfine_ = var1 + var2;
   int32_t t = (tfine_ * 5 + 128) >> 8;
   return static_cast<float>(t) / 100.0f;
@@ -158,7 +161,8 @@ bool Bme280::Configure() {
     return false;
   }
   /* Oversampling and mode */
-  if (!WriteRegister(CTRL_MEAS_REG_, t_samp_ << 5 | p_samp_ << 3 | MODE_NORMAL_)) {
+  if (!WriteRegister(CTRL_MEAS_REG_, t_samp_ << 5 |
+                     p_samp_ << 3 | MODE_NORMAL_)) {
     return false;
   }
   return true;
