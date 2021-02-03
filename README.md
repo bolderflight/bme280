@@ -5,7 +5,7 @@ This library communicates with the [BME280](https://www.bosch-sensortec.com/prod
    * [Contributing guide](CONTRIBUTING.md)
 
 # Description
-The Bosch Sensortec [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) is an integrated environmental sensor, which combines high linearity, high accuracy sensors for pressure, temperature, and humidity in a compact LGA package. The humidity sensor features an extremely fast response time and high accuracy over a wide temperature range. The pressure sensor is an absolute barometric pressure sensor with features exceptionally high accuracy and resolution at very low noise. The integrated temperature sensor has been optimized for very low noise and high resolution. Pressure, temperature, and humidity measurements can be useful for applications involving unmanned vehicles (indicated and true airspeed, altitude, and density altitude), indoor navigation (floor detection), outdoor navigation (altitudes and airspeeds, dead-reckoning, GPS time to first fix improvements) as well as weather monitoring and home automation.
+The Bosch Sensortec [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) is an integrated environmental sensor, which combines high linearity, high accuracy sensors for pressure, temperature, and humidity in a compact LGA package. The pressure sensor is an absolute barometric pressure sensor with features exceptionally high accuracy and resolution at very low noise. The integrated temperature sensor has been optimized for very low noise and high resolution. Pressure, temperature, and humidity measurements can be useful for applications involving unmanned vehicles (indicated and true airspeed, altitude, and density altitude), indoor navigation (floor detection), outdoor navigation (altitudes and airspeeds, dead-reckoning, GPS time to first fix improvements) as well as weather monitoring and home automation.
 
 The [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) samples pressure and temperature to 20 bit resolution and humidity to 16 bit resolution. The [BME280](https://www.bosch-sensortec.com/bst/products/all_products/bme280) features programmable oversampling, IIR filtering, and standby time between samples. The BME280 supports both I2C and SPI communication.
 
@@ -37,6 +37,8 @@ Notice that the *cmake* command includes a define specifying the microcontroller
    * MK64FX512
    * MK66FX1M0
    * MKL26Z64
+   * IMXRT1062_T40
+   * IMXRT1062_T41
 
 These are known to work with the same packages used in Teensy products. Also switching the MK66FX1M0 or MK64FX512 from BGA to LQFP packages is known to work well. Swapping packages of other chips is probably fine, as long as it's only a package change.
 
@@ -82,9 +84,9 @@ The BME280 features programmable oversampling, IIR filtering, and standby time b
 | Filter Bandwidth | 0.53 Hz |
 | Response Time    | 0.88 s  |
 
-Optionally, the *pressure_oversampling*, *temperature_oversampling*, *iir_coefficient* and *standby_time* functions can be used, following *Begin*, to change these settings from their default values. For much more information on the settings and performance implications, please refer to the [BME280 datasheet](https://gitlab.com/bolderflight/software/bme280/-/blob/master/docs/BME280-Datasheet.pdf).
+Optionally, the *ConfigPresOversampling*, *ConfigTempOversampling*, *ConfigIir* and *ConfigStandbyTime* functions can be used, following *Begin*, to change these settings from their default values. For much more information on the settings and performance implications, please refer to the [BME280 datasheet](https://gitlab.com/bolderflight/software/bme280/-/blob/master/docs/BME280-Datasheet.pdf).
 
-**bool temperature_oversampling(Oversampling oversampling)** Sets the temperature oversampling value. The following enumerated oversampling settings are supported:
+**bool ConfigTempOversampling(const Oversampling oversampling)** Sets the temperature oversampling value. The following enumerated oversampling settings are supported:
 
 | Oversampling Name | Oversampling Value |
 | ---               | ---                |
@@ -97,19 +99,19 @@ Optionally, the *pressure_oversampling*, *temperature_oversampling*, *iir_coeffi
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.temperature_oversampling(sensors::Bme280::OVERSAMPLING_16);
+bool status = bme280.ConfigTempOversampling(sensors::Bme280::OVERSAMPLING_16);
 if (!status) {
   // ERROR
 }
 ```
 
-**Oversampling temperature_oversampling()** Returns the current temperature oversampling value.
+**Oversampling temp_oversampling()** Returns the current temperature oversampling value.
 
-**bool pressure_oversampling(Oversampling oversampling)** Sets the pressure oversampling value. The use of this function is identical to *temperature_oversampling*.
+**bool ConfigPresOversampling(const Oversampling oversampling)** Sets the pressure oversampling value. The use of this function is identical to *ConfigTempOversampling*.
 
-**Oversampling pressure_oversampling()** Returns the current pressure oversampling value.
+**Oversampling pres_oversampling()** Returns the current pressure oversampling value.
 
-**bool iir_coefficient(IirCoefficient iir)** Sets the digital low pass filter IIR coefficient. This filter is applied to all measurements. The filter is given by the following equation:
+**bool ConfigIir(const IirCoefficient iir)** Sets the digital low pass filter IIR coefficient. This filter is applied to all measurements. The filter is given by the following equation:
 
 *data_filtered = (data_filtered_old &ast; (filter_coefficient - 1) + data) / filter_coefficient*
 
@@ -126,15 +128,15 @@ The following enumerated filter coefficients are supported:
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.iir_coefficient(sensors::Bme280::IIRC_16);
+bool status = bme280.ConfigIir(sensors::Bme280::IIRC_16);
 if (!status) {
   // ERROR
 }
 ```
 
-**IirCoefficient iir_coefficient()** Returns the current IIR coefficient value.
+**IirCoefficient iir()** Returns the current IIR coefficient value.
 
-**bool standby_time(StandbyTime standby)** Sets the standby time, which is applied to all measurements. This is the time that the sensor spends idle between taking measurements. 
+**bool ConfigStandbyTime(const StandbyTime standby)** Sets the standby time, which is applied to all measurements. This is the time that the sensor spends idle between taking measurements. 
 
 The following enumerated standby times are supported:
 
@@ -152,7 +154,7 @@ The following enumerated standby times are supported:
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.standby_time(sensors::Bme280::STANDBY_0_5_MS);
+bool status = bme280.ConfigStandbyTime(sensors::Bme280::STANDBY_0_5_MS);
 if (!status) {
   // ERROR
 }
