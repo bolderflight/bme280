@@ -45,10 +45,20 @@ bool Bme280::Begin() {
   } else {
     pinMode(conn_, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */
+    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
+        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
+        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
+        defined(__IMXRT1052__)
     digitalWriteFast(conn_, LOW);
     delay(1);
     digitalWriteFast(conn_, HIGH);
     spi_->begin();
+    #else
+    digitalWrite(conn_, LOW);
+    delay(1);
+    digitalWrite(conn_, HIGH);
+    spi_->begin();
+    #endif
   }
   /* Reset the BME-280 */
   WriteRegister(RESET_REG_, SOFT_RESET_);
@@ -176,10 +186,20 @@ bool Bme280::WriteRegister(uint8_t reg, uint8_t data) {
     i2c_->endTransmission();
   } else {
     spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
+    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
+        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
+        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
+        defined(__IMXRT1052__)
     digitalWriteFast(conn_, LOW);
     spi_->transfer(reg & ~SPI_READ_);
     spi_->transfer(data);
     digitalWriteFast(conn_, HIGH);
+    #else
+    digitalWrite(conn_, LOW);
+    spi_->transfer(reg & ~SPI_READ_);
+    spi_->transfer(data);
+    digitalWrite(conn_, HIGH);
+    #endif
     spi_->endTransaction();
   }
   delay(10);
@@ -206,10 +226,20 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     }
   } else {
     spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
+    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
+        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
+        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
+        defined(__IMXRT1052__)
     digitalWriteFast(conn_, LOW);
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
     digitalWriteFast(conn_, HIGH);
+    #else
+    digitalWrite(conn_, LOW);
+    spi_->transfer(reg | SPI_READ_);
+    spi_->transfer(data, count);
+    digitalWrite(conn_, HIGH);
+    #endif
     spi_->endTransaction();
     return true;
   }
