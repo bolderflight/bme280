@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1
+- Put guards around digitalWriteFast to support microcontrollers that might not have that available
+- Switched std::size_t to int to support microcontrollers without STL access
+
 ## v2.0.0
 - Updated to match our [BME-280](https://github.com/bolderflight/bme280) library for flight software
 - Updated license to MIT

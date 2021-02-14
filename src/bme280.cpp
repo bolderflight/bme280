@@ -217,7 +217,7 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     i2c_->endTransmission(false);
     uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
     if (bytes_rx == count) {
-      for (std::size_t i = 0; i < bytes_rx; i++) {
+      for (int i = 0; i < bytes_rx; i++) {
         data[i] = i2c_->read();
       }
       return true;
