@@ -42,20 +42,20 @@ These are known to work with the same packages used in Teensy products. Also swi
 The *i2c_example* and *spi_example* targets create executables for communicating with the sensor using I2C or SPI communication, respectively. Each target also has a *_hex* for creating the hex file to upload to the microcontroller. 
 
 ## Namespace
-This library is within the namespace *sensors*.
+This library is within the namespace *bfs*.
 
 ## Methods
 
 **Bme280(i2c_t3 &ast;bus, uint8_t addr)** Creates a Bme280 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with the I2C address of the sensor. The address will be 0x76 if the SDO pin is grounded and 0x77 if the SDO pin is pulled high.
 
 ```C++
-sensors::Bme280 bme280(&Wire, 0x68);
+bfs::Bme280 bme280(&Wire, 0x68);
 ```
 
 **Bme280(SPIClass &ast;bus, uint8_t cs)** Creates a Bme280 object. This constructor is used for the SPI communication interface. A pointer to the SPI bus object is passed along with the chip select pin of the sensor. Any pin capable of digital I/O can be used as a chip select pin.
 
 ```C++
-sensors::Bme280 bme280(&SPI, 2);
+bfs::Bme280 bme280(&SPI, 2);
 ```
 
 **bool Begin()** Initializes communication with the sensor and configures the default sampling rates, oversampling and low pass filter settings. True is returned if communication is able to be established with the sensor and configuration completes successfully, otherwise, false is returned.
@@ -96,7 +96,7 @@ Optionally, the *ConfigPresOversampling*, *ConfigTempOversampling*, *ConfigIir* 
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.ConfigTempOversampling(sensors::Bme280::OVERSAMPLING_16);
+bool status = bme280.ConfigTempOversampling(bfs::Bme280::OVERSAMPLING_16);
 if (!status) {
   // ERROR
 }
@@ -125,7 +125,7 @@ The following enumerated filter coefficients are supported:
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.ConfigIir(sensors::Bme280::IIRC_16);
+bool status = bme280.ConfigIir(bfs::Bme280::IIRC_16);
 if (!status) {
   // ERROR
 }
@@ -151,7 +151,7 @@ The following enumerated standby times are supported:
 True is returned on successfully updating the BME280 configuration, otherwise false is returned.
 
 ```C++
-bool status = bme280.ConfigStandbyTime(sensors::Bme280::STANDBY_0_5_MS);
+bool status = bme280.ConfigStandbyTime(bfs::Bme280::STANDBY_0_5_MS);
 if (!status) {
   // ERROR
 }

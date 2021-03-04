@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.0.0
+- Updated to namespace *bfs*
+
 ## v2.0.1
 - Updated to support core v2.0.4
 

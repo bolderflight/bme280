@@ -28,7 +28,7 @@
 
 #include "core/core.h"
 
-namespace sensors {
+namespace bfs {
 
 class Bme280 {
  public:
@@ -118,6 +118,6 @@ class Bme280 {
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
 };
 
-}  // namespace sensors
+}  // namespace bfs
 
 #endif  // INCLUDE_BME280_BME280_H_

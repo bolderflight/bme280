@@ -26,7 +26,7 @@
 #include "bme280/bme280.h"
 #include "core/core.h"
 
-namespace sensors {
+namespace bfs {
 
 Bme280::Bme280(TwoWire *bus, uint8_t addr) {
   iface_ = I2C;
@@ -215,4 +215,4 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
   }
 }
 
-}  // namespace sensors
+}  // namespace bfs
