@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Bme280
-	VERSION 3.0.0
+	VERSION 4.0.0
 	DESCRIPTION "BME-280 sensor driver"
 	LANGUAGES CXX
 )
@@ -21,6 +21,13 @@ if (DEFINED MCU)
 		GIT_TAG v2.0.4
 	)
 	FetchContent_MakeAvailable(core)
+	# Fetch pres
+	FetchContent_Declare(
+		pres
+		GIT_REPOSITORY 	https://github.com/bolderflight/pres.git
+		GIT_TAG v1.1.0
+	)
+	FetchContent_MakeAvailable(pres)
 	# Add the library target
 	add_library(bme280
 		src/bme280/bme280.cc
@@ -30,6 +37,7 @@ if (DEFINED MCU)
 	target_link_libraries(bme280
 		PUBLIC
 			core
+			pres
 	)
 	# Setup include directories 
 	target_include_directories(bme280 PUBLIC 
@@ -51,7 +59,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Link libraries to the example target
 		target_link_libraries(i2c_example
 			PRIVATE 
-			bme280
+				bme280
 		)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)
@@ -66,7 +74,7 @@ if (PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
 		# Link libraries to the example target
 		target_link_libraries(spi_example
 			PRIVATE 
-			bme280
+				bme280
 		)
 		# Add hex and upload targets
 		include(${CMAKE_SOURCE_DIR}/cmake/flash_mcu.cmake)

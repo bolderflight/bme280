@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.0.0
+- Updated to conform to the *Pres* interface
+
 ## v3.0.0
 - Updated to namespace *bfs*
 

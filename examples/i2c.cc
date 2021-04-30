@@ -25,22 +25,38 @@
 
 #include "bme280/bme280.h"
 
-bfs::Bme280 bme(&Wire, 0x76);
+/* BME280 object */
+bfs::Bme280 static_pres;
+
+/* Pressure data */
+bfs::PresData data;
 
 int main() {
   Serial.begin(115200);
   while(!Serial) {}
-  bool status = bme.Begin();
+  /* Config */
+  bfs::PresConfig config = {
+    .bus = &Wire,
+    .dev = 0x76,
+    .sampling_period_ms = 20
+  };
+  /* Init the bus */
+  Wire.begin();
+  Wire.setClock(400000);
+  /* Init sensor */
+  if (!static_pres.Init(config)) {
+    Serial.println("Unable to communicate with BME280");
+    while (1) {}
+  }
   while (1) {
-    status = bme.Read();
-    float p = bme.pressure_pa();
-    float t = bme.die_temperature_c();
-    Serial.print(p);
-    Serial.print("\t");
-    Serial.print(t);
-    Serial.print("\t");
-    Serial.print(status);
-    Serial.print("\n");
-    delay(500);
+    if (static_pres.Read(&data)) {
+      Serial.print(data.new_data);
+      Serial.print("\t");
+      Serial.print(data.healthy);
+      Serial.print("\t");
+      Serial.print(data.pres_pa);
+      Serial.print("\n");
+    }
+    delay(config.sampling_period_ms);
   }
 }

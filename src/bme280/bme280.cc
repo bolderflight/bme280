@@ -28,81 +28,91 @@
 
 namespace bfs {
 
-Bme280::Bme280(TwoWire *bus, uint8_t addr) {
-  iface_ = I2C;
-  i2c_ = bus;
-  conn_ = addr;
+bool Bme280::Init(const PresConfig &ref) {
+  /* Copy the config */
+  config_ = ref;
+  /* Determine the interface type */
+  if (std::holds_alternative<TwoWire *>(config_.bus)) {
+    i2c_ = std::get<TwoWire *>(config_.bus);
+  } else if (std::holds_alternative<SPIClass *>(config_.bus)) {
+    spi_ = std::get<SPIClass *>(config_.bus);
+  } else {
+    return false;
+  }
+  /* Health monitoring */
+  health_period_ms_ = 5 * ref.sampling_period_ms;
+  health_timer_ms_ = 0;
+  /* Start communication with sensor */
+  return Begin();
 }
-Bme280::Bme280(SPIClass *bus, uint8_t cs) {
-  iface_ = SPI;
-  spi_ = bus;
-  conn_ = cs;
+bool Bme280::Read(PresData * const ptr) {
+  if (!ptr) {return false;}
+  ptr->new_data = ReadPres();
+  ptr->healthy = (health_timer_ms_ < health_period_ms_);
+  if (ptr->new_data) {
+    health_timer_ms_ = 0;
+    ptr->pres_pa = p_;
+  }
+  return ptr->new_data;
 }
 bool Bme280::Begin() {
-  if (iface_ == I2C) {
-    i2c_->begin();
-    i2c_->setClock(I2C_CLOCK_);
-  } else {
-    pinMode(conn_, OUTPUT);
+  if (iface_ == SPI) {
+    pinMode(config_.dev, OUTPUT);
     /* Toggle CS pin to lock in SPI mode */
-    digitalWriteFast(conn_, LOW);
+    digitalWriteFast(config_.dev, LOW);
     delay(1);
-    digitalWriteFast(conn_, HIGH);
-    spi_->begin();
+    digitalWriteFast(config_.dev, HIGH);
   }
   /* Reset the BME-280 */
   WriteRegister(RESET_REG_, SOFT_RESET_);
   /* Wait for power up */
   delay(10);
   /* Check the WHO AM I */
-  uint8_t who_am_i;
-  if (!ReadRegisters(WHO_AM_I_REG_, sizeof(who_am_i), &who_am_i)) {
+  if (!ReadRegisters(WHO_AM_I_REG_, sizeof(who_am_i_), &who_am_i_)) {
     return false;
   }
-  if (who_am_i != WHOAMI_) {
+  if (who_am_i_ != WHOAMI_) {
     return false;
   }
   /* Check that BME-280 is not copying trimming parameters */
-  uint8_t trimming;
-  ReadRegisters(STATUS_REG_, sizeof(trimming), &trimming);
-  while (trimming & 0x01) {
+  ReadRegisters(STATUS_REG_, sizeof(trimming_), &trimming_);
+  while (trimming_ & 0x01) {
     delay(1);
-    ReadRegisters(STATUS_REG_, sizeof(trimming), &trimming);
+    ReadRegisters(STATUS_REG_, sizeof(trimming_), &trimming_);
   }
   /* Read the trimming parameters */
-  uint8_t trimming_buffer[24];
-  if (!ReadRegisters(TRIMMING_REG_, sizeof(trimming_buffer), trimming_buffer)) {
+  uint8_t trim_buf_[24];
+  if (!ReadRegisters(TRIMMING_REG_, sizeof(trim_buf_), trim_buf_)) {
     return false;
   }
-  dt1_ = static_cast<uint16_t>(trimming_buffer[1]) << 8 | trimming_buffer[0];
-  dt2_ = static_cast<int16_t>(trimming_buffer[3]) << 8 | trimming_buffer[2];
-  dt3_ = static_cast<int16_t>(trimming_buffer[5]) << 8 | trimming_buffer[4];
-  dp1_ = static_cast<uint16_t>(trimming_buffer[7]) << 8 | trimming_buffer[6];
-  dp2_ = static_cast<int16_t>(trimming_buffer[9]) << 8 | trimming_buffer[8];
-  dp3_ = static_cast<int16_t>(trimming_buffer[11]) << 8 | trimming_buffer[10];
-  dp4_ = static_cast<int16_t>(trimming_buffer[13]) << 8 | trimming_buffer[12];
-  dp5_ = static_cast<int16_t>(trimming_buffer[15]) << 8 | trimming_buffer[14];
-  dp6_ = static_cast<int16_t>(trimming_buffer[17]) << 8 | trimming_buffer[16];
-  dp7_ = static_cast<int16_t>(trimming_buffer[19]) << 8 | trimming_buffer[18];
-  dp8_ = static_cast<int16_t>(trimming_buffer[21]) << 8 | trimming_buffer[20];
-  dp9_ = static_cast<int16_t>(trimming_buffer[23]) << 8 | trimming_buffer[22];
+  dt1_ = static_cast<uint16_t>(trim_buf_[1]) << 8 | trim_buf_[0];
+  dt2_ = static_cast<int16_t>(trim_buf_[3]) << 8 | trim_buf_[2];
+  dt3_ = static_cast<int16_t>(trim_buf_[5]) << 8 | trim_buf_[4];
+  dp1_ = static_cast<uint16_t>(trim_buf_[7]) << 8 | trim_buf_[6];
+  dp2_ = static_cast<int16_t>(trim_buf_[9]) << 8 | trim_buf_[8];
+  dp3_ = static_cast<int16_t>(trim_buf_[11]) << 8 | trim_buf_[10];
+  dp4_ = static_cast<int16_t>(trim_buf_[13]) << 8 | trim_buf_[12];
+  dp5_ = static_cast<int16_t>(trim_buf_[15]) << 8 | trim_buf_[14];
+  dp6_ = static_cast<int16_t>(trim_buf_[17]) << 8 | trim_buf_[16];
+  dp7_ = static_cast<int16_t>(trim_buf_[19]) << 8 | trim_buf_[18];
+  dp8_ = static_cast<int16_t>(trim_buf_[21]) << 8 | trim_buf_[20];
+  dp9_ = static_cast<int16_t>(trim_buf_[23]) << 8 | trim_buf_[22];
   /* Configure BME-280 */
   return Configure();
 }
-bool Bme280::Read() {
-  uint8_t buf[6];
+bool Bme280::ReadPres() {
   /* Read the data */
-  if (!ReadRegisters(DATA_REG_, sizeof(buf), buf)) {
+  if (!ReadRegisters(DATA_REG_, sizeof(buf_), buf_)) {
     return false;
   }
-  uint32_t pressure_counts = static_cast<uint32_t>(buf[0]) << 12 |
-                             static_cast<uint32_t>(buf[1]) << 4 |
-                             static_cast<uint32_t>(buf[2]) & 0xF0 >> 4;
-  uint32_t temperature_counts = static_cast<uint32_t>(buf[3]) << 12 |
-                                static_cast<uint32_t>(buf[4]) << 4 |
-                                static_cast<uint32_t>(buf[5]) & 0xF0 >> 4;
-  t_ = CompensateTemperature(temperature_counts);
-  p_ = CompensatePressure(pressure_counts);
+  uint32_t pres_cnts_ = static_cast<uint32_t>(buf_[0]) << 12 |
+                        static_cast<uint32_t>(buf_[1]) << 4 |
+                        static_cast<uint32_t>(buf_[2]) & 0xF0 >> 4;
+  uint32_t temp_cnts_ = static_cast<uint32_t>(buf_[3]) << 12 |
+                        static_cast<uint32_t>(buf_[4]) << 4 |
+                        static_cast<uint32_t>(buf_[5]) & 0xF0 >> 4;
+  t_ = CompensateTemperature(temp_cnts_);
+  p_ = CompensatePressure(pres_cnts_);
   return true;
 }
 bool Bme280::ConfigTempOversampling(const Oversampling oversampling) {
@@ -122,30 +132,31 @@ bool Bme280::ConfigStandbyTime(const StandbyTime standby) {
   return Configure();
 }
 float Bme280::CompensateTemperature(int32_t counts) {
-  int32_t var1 = ((((counts >> 3) - ((int32_t)dt1_ << 1))) *
-                 ((int32_t)dt2_)) >> 11;
-  int32_t var2 = (((((counts >> 4) - ((int32_t)dt1_)) * ((counts >> 4) -
-                 ((int32_t)dt1_))) >> 12) * ((int32_t)dt3_)) >> 14;
-  tfine_ = var1 + var2;
-  int32_t t = (tfine_ * 5 + 128) >> 8;
-  return static_cast<float>(t) / 100.0f;
+  tvar1_ = ((((counts >> 3) - ((int32_t)dt1_ << 1))) *
+           ((int32_t)dt2_)) >> 11;
+  tvar2_ = (((((counts >> 4) - ((int32_t)dt1_)) * ((counts >> 4) -
+           ((int32_t)dt1_))) >> 12) * ((int32_t)dt3_)) >> 14;
+  tfine_ = tvar1_ + tvar2_;
+  tvar_ = (tfine_ * 5 + 128) >> 8;
+  return static_cast<float>(tvar_) / 100.0f;
 }
 float Bme280::CompensatePressure(int32_t counts) {
-  int64_t var1 = ((int64_t)tfine_) - 128000;
-  int64_t var2 = var1 * var1 * (int64_t)dp6_;
-  var2 = var2 + ((var1 * (int64_t)dp5_) << 17);
-  var2 = var2 + (((int64_t)dp4_) << 35);
-  var1 = ((var1 * var1 * (int64_t)dp3_) >> 8) + ((var1 * (int64_t)dp2_) << 12);
-  var1 = (((((int64_t)1) << 47)+ var1)) * ((int64_t)dp1_) >> 33;
-  if (var1 == 0) {
+  pvar1_ = ((int64_t)tfine_) - 128000;
+  pvar2_ = pvar1_ * pvar1_ * (int64_t)dp6_;
+  pvar2_ = pvar2_ + ((pvar1_ * (int64_t)dp5_) << 17);
+  pvar2_ = pvar2_ + (((int64_t)dp4_) << 35);
+  pvar1_ = ((pvar1_ * pvar1_ * (int64_t)dp3_) >> 8) +
+           ((pvar1_ * (int64_t)dp2_) << 12);
+  pvar1_ = (((((int64_t)1) << 47)+ pvar1_)) * ((int64_t)dp1_) >> 33;
+  if (pvar1_ == 0) {
     return 0;  // avoid exception caused by division by zero
   }
-  int64_t p = 1048576 - counts;
-  p = (((p << 31) - var2) * 3125) / var1;
-  var1 = (((int64_t)dp9_) * (p >> 13) * (p >> 13)) >> 25;
-  var2 = (((int64_t)dp8_) * p) >> 19;
-  p = ((p + var1 + var2) >> 8) + (((int64_t)dp7_) << 4);
-  return static_cast<float>(static_cast<uint32_t>(p)) / 256.0f;
+  pvar_ = 1048576 - counts;
+  pvar_ = (((pvar_ << 31) - pvar2_) * 3125) / pvar1_;
+  pvar1_ = (((int64_t)dp9_) * (pvar_ >> 13) * (pvar_ >> 13)) >> 25;
+  pvar2_ = (((int64_t)dp8_) * pvar_) >> 19;
+  pvar_ = ((pvar_ + pvar1_ + pvar2_) >> 8) + (((int64_t)dp7_) << 4);
+  return static_cast<float>(static_cast<uint32_t>(pvar_)) / 256.0f;
 }
 bool Bme280::Configure() {
   /* Set to sleep mode */
@@ -168,23 +179,22 @@ bool Bme280::Configure() {
   return true;
 }
 bool Bme280::WriteRegister(uint8_t reg, uint8_t data) {
-  uint8_t ret_val;
   if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
+    i2c_->beginTransmission(config_.dev);
     i2c_->write(reg);
     i2c_->write(data);
     i2c_->endTransmission();
   } else {
     spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
-    digitalWriteFast(conn_, LOW);
+    digitalWriteFast(config_.dev, LOW);
     spi_->transfer(reg & ~SPI_READ_);
     spi_->transfer(data);
-    digitalWriteFast(conn_, HIGH);
+    digitalWriteFast(config_.dev, HIGH);
     spi_->endTransaction();
   }
   delay(10);
-  ReadRegisters(reg, sizeof(ret_val), &ret_val);
-  if (data == ret_val) {
+  ReadRegisters(reg, sizeof(ret_val_), &ret_val_);
+  if (data == ret_val_) {
     return true;
   } else {
     return false;
@@ -192,12 +202,12 @@ bool Bme280::WriteRegister(uint8_t reg, uint8_t data) {
 }
 bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
   if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
+    i2c_->beginTransmission(config_.dev);
     i2c_->write(reg);
     i2c_->endTransmission(false);
-    uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
-    if (bytes_rx == count) {
-      for (std::size_t i = 0; i < bytes_rx; i++) {
+    bytes_rx_ = i2c_->requestFrom(config_.dev, count);
+    if (bytes_rx_ == count) {
+      for (std::size_t i = 0; i < bytes_rx_; i++) {
         data[i] = i2c_->read();
       }
       return true;
@@ -206,10 +216,10 @@ bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
     }
   } else {
     spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
-    digitalWriteFast(conn_, LOW);
+    digitalWriteFast(config_.dev, LOW);
     spi_->transfer(reg | SPI_READ_);
     spi_->transfer(data, count);
-    digitalWriteFast(conn_, HIGH);
+    digitalWriteFast(config_.dev, HIGH);
     spi_->endTransaction();
     return true;
   }
