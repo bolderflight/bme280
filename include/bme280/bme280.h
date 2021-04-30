@@ -27,11 +27,28 @@
 #define INCLUDE_BME280_BME280_H_
 
 #include "core/core.h"
+#include "pres/pres.h"
 
 namespace bfs {
 
 class Bme280 {
  public:
+  bool Init(const PresConfig &ref);
+  bool Read(PresData * const ptr);
+
+ private:
+  /* Communications interface */
+  enum Interface {
+    SPI,
+    I2C
+  };
+  Interface iface_;
+  TwoWire *i2c_;
+  SPIClass *spi_;
+  static constexpr uint32_t SPI_CLOCK_ = 10000000;
+  static constexpr uint32_t I2C_CLOCK_ = 400000;
+  static constexpr uint8_t SPI_READ_ = 0x80;
+  /* Configuration */
   enum Oversampling : uint8_t {
     OVERSAMPLING_1   = 0x01,
     OVERSAMPLING_2   = 0x02,
@@ -56,48 +73,37 @@ class Bme280 {
     STANDBY_10_MS = 0x06,
     STANDBY_20_MS = 0x07
   };
-  Bme280(TwoWire *bus, uint8_t addr);
-  Bme280(SPIClass *bus, uint8_t cs);
-  bool Begin();
-  bool Read();
-  bool ConfigTempOversampling(const Oversampling oversampling);
-  inline Oversampling temp_oversampling() const {return t_samp_;}
-  bool ConfigPresOversampling(const Oversampling oversampling);
-  inline Oversampling pres_oversampling() const {return p_samp_;}
-  bool ConfigIir(const IirCoefficient iir);
-  inline IirCoefficient iir() const {return iirc_;}
-  bool ConfigStandbyTime(const StandbyTime standby);
-  inline StandbyTime standby_time() const {return standby_;}
-  inline float pressure_pa() const {return p_;}
-  inline float die_temperature_c() const {return t_;}
-
- private:
-  enum Interface {
-    SPI,
-    I2C
-  };
-  /* Communications interface */
-  Interface iface_;
-  TwoWire *i2c_;
-  SPIClass *spi_;
-  uint8_t conn_;
-  static constexpr uint32_t SPI_CLOCK_ = 10000000;
-  static constexpr uint32_t I2C_CLOCK_ = 400000;
-  static constexpr uint8_t SPI_READ_ = 0x80;
-  /* Configuration */
+  PresConfig config_;
   Oversampling t_samp_ = OVERSAMPLING_2;
   Oversampling p_samp_ = OVERSAMPLING_16;
   IirCoefficient iirc_ = IIRC_16;
   StandbyTime standby_ = STANDBY_0_5_MS;
+  uint8_t who_am_i_;
+  uint8_t trimming_;
+  uint8_t trim_buf_[24];
   static constexpr uint8_t WHOAMI_ = 0x60;
   /* Data */
+  uint8_t bytes_rx_;
+  uint8_t ret_val_;
+  uint8_t buf_[6];
   uint16_t dt1_;
   int16_t dt2_, dt3_;
   uint16_t dp1_;
   int16_t dp2_, dp3_, dp4_, dp5_, dp6_, dp7_, dp8_, dp9_;
   int32_t tfine_;
+  uint32_t pres_cnts_;
+  uint32_t temp_cnts_;
+  int32_t tvar1_;
+  int32_t tvar2_;
+  int32_t tvar_;
+  int64_t pvar1_;
+  int64_t pvar2_;
+  int64_t pvar_;
   float p_;
   float t_;
+  /* Health monitoring */
+  int32_t health_period_ms_;
+  elapsedMillis health_timer_ms_;
   /* Registers */
   static constexpr uint8_t WHO_AM_I_REG_ = 0xD0;
   static constexpr uint8_t RESET_REG_ = 0xE0;
@@ -111,6 +117,12 @@ class Bme280 {
   static constexpr uint8_t SOFT_RESET_ = 0xB6;
   static constexpr uint8_t MODE_SLEEP_ = 0x00;
   static constexpr uint8_t MODE_NORMAL_ = 0x03;
+  bool Begin();
+  bool ReadPres();
+  bool ConfigTempOversampling(const Oversampling oversampling);
+  bool ConfigPresOversampling(const Oversampling oversampling);
+  bool ConfigIir(const IirCoefficient iir);
+  bool ConfigStandbyTime(const StandbyTime standby);
   bool Configure();
   float CompensateTemperature(int32_t counts);
   float CompensatePressure(int32_t counts);
