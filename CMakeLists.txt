@@ -5,7 +5,7 @@ if (DEFINED MCU)
 endif()
 # Project information
 project(Bme280
-	VERSION 4.0.0
+	VERSION 4.0.1
 	DESCRIPTION "BME-280 sensor driver"
 	LANGUAGES CXX
 )
@@ -18,7 +18,7 @@ if (DEFINED MCU)
 	FetchContent_Declare(
 		core
 		GIT_REPOSITORY 	https://github.com/bolderflight/core.git
-		GIT_TAG v2.0.4
+		GIT_TAG v2.0.5
 	)
 	FetchContent_MakeAvailable(core)
 	# Fetch pres
