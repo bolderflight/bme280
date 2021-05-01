@@ -130,6 +130,9 @@ class Bme280 {
   bool ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data);
 };
 
+/* Checking conformance to pressure interface */
+static_assert(Pres<Bme280>, "Bme280 does not conform to Pres interface");
+
 }  // namespace bfs
 
 #endif  // INCLUDE_BME280_BME280_H_

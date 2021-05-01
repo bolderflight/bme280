@@ -40,14 +40,6 @@ int main() {
     .dev = 26,
     .sampling_period_ms = 20
   };
-
-  pinMode(24, OUTPUT);
-  pinMode(25, OUTPUT);
-  pinMode(26, OUTPUT);
-  digitalWriteFast(24, HIGH);
-  digitalWriteFast(25, HIGH);
-  digitalWriteFast(26, HIGH);
-
   /* Init the bus */
   SPI.begin();
   /* Init sensor */
