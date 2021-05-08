@@ -52,6 +52,7 @@ bool Bme280::Read(PresData * const ptr) {
   if (ptr->new_data) {
     health_timer_ms_ = 0;
     ptr->pres_pa = p_;
+    ptr->die_temp_c = t_;
   }
   return ptr->new_data;
 }

@@ -36,9 +36,9 @@ int main() {
   while(!Serial) {}
   /* Config */
   bfs::PresConfig config = {
-    .bus = &Wire,
     .dev = 0x76,
-    .sampling_period_ms = 20
+    .sampling_period_ms = 20,
+    .bus = &Wire
   };
   /* Init the bus */
   Wire.begin();
@@ -55,6 +55,8 @@ int main() {
       Serial.print(data.healthy);
       Serial.print("\t");
       Serial.print(data.pres_pa);
+      Serial.print("\t");
+      Serial.print(data.die_temp_c);
       Serial.print("\n");
     }
     delay(config.sampling_period_ms);
