@@ -1,0 +1,11 @@
+stages:
+  - lint
+
+Lint:
+  stage: lint
+  tags:
+    - bfs
+  script: 
+    - cpplint --verbose=0 src/bme280/bme280.cc
+    - cpplint --verbose=0 include/bme280/bme280.h
+  
