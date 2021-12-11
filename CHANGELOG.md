@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.0.0
+- Merging Bme280 and Bme280-arduino
+- Pulling in CMake tooling from the mcu-support repo
+- Pulling in BST provided source files and wrapping C++ around them
+
 ## v2.0.1
 - Put guards around digitalWriteFast to support microcontrollers that might not have that available
 - Switched std::size_t to int to support microcontrollers without STL access
