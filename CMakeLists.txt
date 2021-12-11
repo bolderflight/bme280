@@ -14,7 +14,7 @@ if (DEFINED MCU)
   project(Bme280
     VERSION 5.0.0
     DESCRIPTION "BME-280 sensor driver"
-    LANGUAGES CXX
+    LANGUAGES C CXX
   )
   # Grab the processor and set up definitions and compile options
   include(${mcu_support_SOURCE_DIR}/cmake/config_mcu.cmake)
@@ -30,6 +30,9 @@ if (DEFINED MCU)
   add_library(bme280
     src/bme280.cpp
     src/bme280.h
+    src/bst/bme280_defs.h
+    src/bst/bme280.h
+    src/bst/bme280.c
   )
   # Link libraries
   target_link_libraries(bme280
@@ -74,5 +77,5 @@ if (DEFINED MCU)
     # Add hex and upload targets
     include(${mcu_support_SOURCE_DIR}/cmake/flash_mcu.cmake)
     FlashMcu(spi_example ${MCU} ${mcu_support_SOURCE_DIR})
-	endif()
+  endif()
 endif()

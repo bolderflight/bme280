@@ -23,41 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#include "bme280/bme280.h"
-
-/* BME280 object */
-bfs::Bme280 static_pres;
-
-/* Pressure data */
-bfs::PresData data;
+#include "bme280.h"
 
 int main() {
-  Serial.begin(115200);
-  while(!Serial) {}
-  /* Config */
-  bfs::PresConfig config = {
-    .dev = 26,
-    .sampling_period_ms = 20,
-    .bus = &SPI
-  };
-  /* Init the bus */
-  SPI.begin();
-  /* Init sensor */
-  if (!static_pres.Init(config)) {
-    Serial.println("Unable to communicate with BME280");
-    while (1) {}
-  }
-  while (1) {
-    if (static_pres.Read(&data)) {
-      Serial.print(data.new_data);
-      Serial.print("\t");
-      Serial.print(data.healthy);
-      Serial.print("\t");
-      Serial.print(data.pres_pa);
-      Serial.print("\t");
-      Serial.print(data.die_temp_c);
-      Serial.print("\n");
-    }
-    delay(config.sampling_period_ms);
-  }
+
 }

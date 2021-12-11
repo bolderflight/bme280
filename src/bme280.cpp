@@ -23,224 +23,149 @@
 * IN THE SOFTWARE.
 */
 
-#include "Arduino.h"
+#include "bme280.h"  // NOLINT
+#if defined(ARDUINO)
+#include <Arduino.h>
 #include "Wire.h"
 #include "SPI.h"
-#include "bme280.h"
+#else
+#include "core/core.h"
+#endif
+#include <stddef.h>
+#include <stdint.h>
 
-Bme280::Bme280(TwoWire *bus, uint8_t addr) {
-  iface_ = I2C;
-  i2c_ = bus;
-  conn_ = addr;
+namespace bfs {
+
+Bme280::Bme280(TwoWire *i2c, const uint8_t addr) {
+  i2c_intf_.i2c = i2c;
+  i2c_intf_.addr = addr;
+  dev_.intf_ptr = &i2c_intf_;
+  dev_.intf = BME280_I2C_INTF;
+  dev_.read = I2cReadRegisters;
+  dev_.write = I2cWriteRegisters;
+  dev_.delay_us = Delay_us;
 }
-Bme280::Bme280(SPIClass *bus, uint8_t cs) {
-  iface_ = SPI;
-  spi_ = bus;
-  conn_ = cs;
+
+Bme280::Bme280(SPIClass *spi, const uint8_t cs) {
+  pinMode(cs, OUTPUT);
+  spi_intf_.spi = spi;
+  spi_intf_.cs = cs;
+  dev_.intf_ptr = &spi_intf_;
+  dev_.intf = BME280_SPI_INTF;
+  dev_.read = SpiReadRegisters;
+  dev_.write = SpiWriteRegisters;
+  dev_.delay_us = Delay_us;
 }
-bool Bme280::Begin() {
-  if (iface_ == I2C) {
-    i2c_->begin();
-    i2c_->setClock(I2C_CLOCK_);
-  } else {
-    pinMode(conn_, OUTPUT);
-    /* Toggle CS pin to lock in SPI mode */
-    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
-        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
-        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
-        defined(__IMXRT1052__)
-    digitalWriteFast(conn_, LOW);
-    delay(1);
-    digitalWriteFast(conn_, HIGH);
-    spi_->begin();
-    #else
-    digitalWrite(conn_, LOW);
-    delay(1);
-    digitalWrite(conn_, HIGH);
-    spi_->begin();
-    #endif
-  }
-  /* Reset the BME-280 */
-  WriteRegister(RESET_REG_, SOFT_RESET_);
-  /* Wait for power up */
-  delay(10);
-  /* Check the WHO AM I */
-  uint8_t who_am_i;
-  if (!ReadRegisters(WHO_AM_I_REG_, sizeof(who_am_i), &who_am_i)) {
-    return false;
-  }
-  if (who_am_i != WHOAMI_) {
-    return false;
-  }
-  /* Check that BME-280 is not copying trimming parameters */
-  uint8_t trimming;
-  ReadRegisters(STATUS_REG_, sizeof(trimming), &trimming);
-  while (trimming & 0x01) {
-    delay(1);
-    ReadRegisters(STATUS_REG_, sizeof(trimming), &trimming);
-  }
-  /* Read the trimming parameters */
-  uint8_t trimming_buffer[24];
-  if (!ReadRegisters(TRIMMING_REG_, sizeof(trimming_buffer), trimming_buffer)) {
-    return false;
-  }
-  dt1_ = static_cast<uint16_t>(trimming_buffer[1]) << 8 | trimming_buffer[0];
-  dt2_ = static_cast<int16_t>(trimming_buffer[3]) << 8 | trimming_buffer[2];
-  dt3_ = static_cast<int16_t>(trimming_buffer[5]) << 8 | trimming_buffer[4];
-  dp1_ = static_cast<uint16_t>(trimming_buffer[7]) << 8 | trimming_buffer[6];
-  dp2_ = static_cast<int16_t>(trimming_buffer[9]) << 8 | trimming_buffer[8];
-  dp3_ = static_cast<int16_t>(trimming_buffer[11]) << 8 | trimming_buffer[10];
-  dp4_ = static_cast<int16_t>(trimming_buffer[13]) << 8 | trimming_buffer[12];
-  dp5_ = static_cast<int16_t>(trimming_buffer[15]) << 8 | trimming_buffer[14];
-  dp6_ = static_cast<int16_t>(trimming_buffer[17]) << 8 | trimming_buffer[16];
-  dp7_ = static_cast<int16_t>(trimming_buffer[19]) << 8 | trimming_buffer[18];
-  dp8_ = static_cast<int16_t>(trimming_buffer[21]) << 8 | trimming_buffer[20];
-  dp9_ = static_cast<int16_t>(trimming_buffer[23]) << 8 | trimming_buffer[22];
-  /* Configure BME-280 */
-  return Configure();
+
+void Bme280::Delay_us(uint32_t period, void *intf_ptr) {
+  delayMicroseconds(period);
 }
-bool Bme280::Read() {
-  uint8_t buf[6];
-  /* Read the data */
-  if (!ReadRegisters(DATA_REG_, sizeof(buf), buf)) {
-    return false;
+
+int8_t Bme280::I2cWriteRegisters(uint8_t reg, const uint8_t * data,
+                                 uint32_t len, void * intf) {
+  /* NULL pointer check */
+  if ((!data) || (!intf)) {
+    return BME280_E_NULL_PTR;
   }
-  uint32_t pressure_counts = static_cast<uint32_t>(buf[0]) << 12 |
-                             static_cast<uint32_t>(buf[1]) << 4 |
-                             static_cast<uint32_t>(buf[2]) & 0xF0 >> 4;
-  uint32_t temperature_counts = static_cast<uint32_t>(buf[3]) << 12 |
-                                static_cast<uint32_t>(buf[4]) << 4 |
-                                static_cast<uint32_t>(buf[5]) & 0xF0 >> 4;
-  t_ = CompensateTemperature(temperature_counts);
-  p_ = CompensatePressure(pressure_counts);
-  return true;
-}
-bool Bme280::ConfigTempOversampling(const Oversampling oversampling) {
-  t_samp_ = oversampling;
-  return Configure();
-}
-bool Bme280::ConfigPresOversampling(const Oversampling oversampling) {
-  p_samp_ = oversampling;
-  return Configure();
-}
-bool Bme280::ConfigIir(const IirCoefficient iir) {
-  iirc_ = iir;
-  return Configure();
-}
-bool Bme280::ConfigStandbyTime(const StandbyTime standby) {
-  standby_ = standby;
-  return Configure();
-}
-float Bme280::CompensateTemperature(int32_t counts) {
-  int32_t var1 = ((((counts >> 3) - ((int32_t)dt1_ << 1))) *
-                 ((int32_t)dt2_)) >> 11;
-  int32_t var2 = (((((counts >> 4) - ((int32_t)dt1_)) * ((counts >> 4) -
-                 ((int32_t)dt1_))) >> 12) * ((int32_t)dt3_)) >> 14;
-  tfine_ = var1 + var2;
-  int32_t t = (tfine_ * 5 + 128) >> 8;
-  return static_cast<float>(t) / 100.0f;
-}
-float Bme280::CompensatePressure(int32_t counts) {
-  int64_t var1 = ((int64_t)tfine_) - 128000;
-  int64_t var2 = var1 * var1 * (int64_t)dp6_;
-  var2 = var2 + ((var1 * (int64_t)dp5_) << 17);
-  var2 = var2 + (((int64_t)dp4_) << 35);
-  var1 = ((var1 * var1 * (int64_t)dp3_) >> 8) + ((var1 * (int64_t)dp2_) << 12);
-  var1 = (((((int64_t)1) << 47)+ var1)) * ((int64_t)dp1_) >> 33;
-  if (var1 == 0) {
-    return 0;  // avoid exception caused by division by zero
+  /* Check length */
+  if (len == 0) {
+    return BME280_E_INVALID_LEN;
   }
-  int64_t p = 1048576 - counts;
-  p = (((p << 31) - var2) * 3125) / var1;
-  var1 = (((int64_t)dp9_) * (p >> 13) * (p >> 13)) >> 25;
-  var2 = (((int64_t)dp8_) * p) >> 19;
-  p = ((p + var1 + var2) >> 8) + (((int64_t)dp7_) << 4);
-  return static_cast<float>(static_cast<uint32_t>(p)) / 256.0f;
+  I2cIntf *iface = static_cast<I2cIntf *>(intf);
+  iface->i2c->beginTransmission(iface->addr);
+  if (iface->i2c->write(reg) != 1) {
+    return BME280_E_COMM_FAIL;
+  }
+  if (iface->i2c->write(data, len) != len) {
+    return BME280_E_COMM_FAIL;
+  }
+  iface->i2c->endTransmission();
+  return BME280_OK;
 }
-bool Bme280::Configure() {
-  /* Set to sleep mode */
-  if (!WriteRegister(CTRL_MEAS_REG_, MODE_SLEEP_)) {
-    return false;
+
+int8_t Bme280::I2cReadRegisters(uint8_t reg, uint8_t * data, uint32_t len,
+                                void * intf) {
+  /* NULL pointer check */
+  if ((!data) || (!intf)) {
+    return BME280_E_NULL_PTR;
   }
-  /* Disable humidity sensor */
-  if (!WriteRegister(CTRL_HUM_REG_, 0x00)) {
-    return false;
+  /* Check length */
+  if (len == 0) {
+    return BME280_E_INVALID_LEN;
   }
-  /* Standby time and IIRC config */
-  if (!WriteRegister(CONFIG_REG_, standby_ << 5 | iirc_ << 3)) {
-    return false;
+  I2cIntf *iface = static_cast<I2cIntf *>(intf);
+  iface->i2c->beginTransmission(iface->addr);
+  if (iface->i2c->write(reg) != 1) {
+    return BME280_E_COMM_FAIL;
   }
-  /* Oversampling and mode */
-  if (!WriteRegister(CTRL_MEAS_REG_, t_samp_ << 5 |
-                     p_samp_ << 3 | MODE_NORMAL_)) {
-    return false;
+  iface->i2c->endTransmission(false);
+  if (iface->i2c->requestFrom(iface->addr, len) != len) {
+    return BME280_E_COMM_FAIL;
   }
-  return true;
+  for (size_t i = 0; i < len; i++) {
+    data[i] = iface->i2c->read();
+  }
+  return BME280_OK;
 }
-bool Bme280::WriteRegister(uint8_t reg, uint8_t data) {
-  uint8_t ret_val;
-  if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
-    i2c_->write(reg);
-    i2c_->write(data);
-    i2c_->endTransmission();
-  } else {
-    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
-    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
-        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
-        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
-        defined(__IMXRT1052__)
-    digitalWriteFast(conn_, LOW);
-    spi_->transfer(reg & ~SPI_READ_);
-    spi_->transfer(data);
-    digitalWriteFast(conn_, HIGH);
-    #else
-    digitalWrite(conn_, LOW);
-    spi_->transfer(reg & ~SPI_READ_);
-    spi_->transfer(data);
-    digitalWrite(conn_, HIGH);
-    #endif
-    spi_->endTransaction();
+
+int8_t Bme280::SpiWriteRegisters(uint8_t reg, const uint8_t * data,
+                                 uint32_t len, void * intf) {
+  /* NULL pointer check */
+  if ((!data) || (!intf)) {
+    return BME280_E_NULL_PTR;
   }
-  delay(10);
-  ReadRegisters(reg, sizeof(ret_val), &ret_val);
-  if (data == ret_val) {
-    return true;
-  } else {
-    return false;
+  /* Check length */
+  if (len == 0) {
+    return BME280_E_INVALID_LEN;
   }
+  SpiIntf *iface = static_cast<SpiIntf *>(intf);
+  iface->spi->beginTransaction(SPISettings(SPI_CLK_, MSBFIRST, SPI_MODE3));
+  #if defined(TEENSYDUINO)
+  digitalWriteFast(iface->cs, LOW);
+  #else
+  digitalWrite(iface->cs, LOW);
+  #endif
+  iface->spi->transfer(reg);
+  for (size_t i = 0; i < len; i++) {
+    iface->spi->transfer(data[i]);
+  }
+  #if defined(TEENSYDUINO)
+  digitalWriteFast(iface->cs, HIGH);
+  #else
+  digitalWrite(iface->cs, HIGH);
+  #endif
+  iface->spi->endTransaction();
+  return BME280_OK;
 }
-bool Bme280::ReadRegisters(uint8_t reg, uint8_t count, uint8_t *data) {
-  if (iface_ == I2C) {
-    i2c_->beginTransmission(conn_);
-    i2c_->write(reg);
-    i2c_->endTransmission(false);
-    uint8_t bytes_rx = i2c_->requestFrom(conn_, count);
-    if (bytes_rx == count) {
-      for (int i = 0; i < bytes_rx; i++) {
-        data[i] = i2c_->read();
-      }
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    spi_->beginTransaction(SPISettings(SPI_CLOCK_, MSBFIRST, SPI_MODE3));
-    #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
-        defined(__MK64FX512__) || defined(__MK66FX1M0__) || \
-        defined(__MKL26Z64__)  || defined(__IMXRT1062__) || \
-        defined(__IMXRT1052__)
-    digitalWriteFast(conn_, LOW);
-    spi_->transfer(reg | SPI_READ_);
-    spi_->transfer(data, count);
-    digitalWriteFast(conn_, HIGH);
-    #else
-    digitalWrite(conn_, LOW);
-    spi_->transfer(reg | SPI_READ_);
-    spi_->transfer(data, count);
-    digitalWrite(conn_, HIGH);
-    #endif
-    spi_->endTransaction();
-    return true;
+
+int8_t Bme280::SpiReadRegisters(uint8_t reg, uint8_t * data, uint32_t len,
+                                void * intf) {
+  /* NULL pointer check */
+  if ((!data) || (!intf)) {
+    return BME280_E_NULL_PTR;
   }
+  /* Check length */
+  if (len == 0) {
+    return BME280_E_INVALID_LEN;
+  }
+  SpiIntf *iface = static_cast<SpiIntf *>(intf);
+  iface->spi->beginTransaction(SPISettings(SPI_CLK_, MSBFIRST, SPI_MODE3));
+  #if defined(TEENSYDUINO)
+  digitalWriteFast(iface->cs, LOW);
+  #else
+  digitalWrite(iface->cs, LOW);
+  #endif
+  iface->spi->transfer(reg);
+  for (size_t i = 0; i < len; i++) {
+    data[i] = iface->spi->transfer(0x00);
+  }
+  #if defined(TEENSYDUINO)
+  digitalWriteFast(iface->cs, HIGH);
+  #else
+  digitalWrite(iface->cs, HIGH);
+  #endif
+  iface->spi->endTransaction();
+  return BME280_OK;
 }
+
+}  // namespace bfs
