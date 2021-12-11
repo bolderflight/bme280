@@ -70,10 +70,10 @@ bool Bme280::Begin() {
   dev_.settings.standby_time = BME280_STANDBY_TIME_0_5_MS;
   /* Select the settings to apply */
   uint8_t settings_sel = BME280_OSR_PRESS_SEL;
-	settings_sel |= BME280_OSR_TEMP_SEL;
-	settings_sel |= BME280_OSR_HUM_SEL;
-	settings_sel |= BME280_STANDBY_SEL;
-	settings_sel |= BME280_FILTER_SEL;
+          settings_sel |= BME280_OSR_TEMP_SEL;
+          settings_sel |= BME280_OSR_HUM_SEL;
+          settings_sel |= BME280_STANDBY_SEL;
+          settings_sel |= BME280_FILTER_SEL;
   if (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK) {
     return false;
   }
