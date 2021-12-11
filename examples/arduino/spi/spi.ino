@@ -25,28 +25,29 @@
 
 #include "bme280.h"
 
-/* A Bme280 object SPI bus 0 with pin 10 as chip select */
-Bme280 bme(&SPI, 10);
+/* BME-280 on SPI using CS pin 10 */
+bfs::Bme280 bme(&SPI, 10);
 
 void setup() {
-  /* Serial to display data */
+  /* Serial monitor for showing status and data */
   Serial.begin(115200);
-  while(!Serial){}
-
-  /* Begin communication */
+  while (!Serial) {}
+  /* Initialize the SPI bus */
+  SPI.begin();
+  /* Initialize the BME-280 */
   if (!bme.Begin()) {
-    Serial.println("Error communicating with sensor");
-    while(1){}
+    Serial.println("Error initializing communication with BME-280");
+    while (1) {}
   }
 }
 
 void loop() {
-  /* Read the sensor */
   if (bme.Read()) {
-    /* Displaying the data */
-    Serial.print(bme.pressure_pa(), 6);
+    Serial.print(bme.pres_pa());
     Serial.print("\t");
-    Serial.println(bme.die_temperature_c(), 2);
+    Serial.print(bme.die_temp_c());
+    Serial.print("\t");
+    Serial.println(bme.humidity_rh());
   }
   delay(100);
 }

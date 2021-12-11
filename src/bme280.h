@@ -95,7 +95,7 @@ class Bme280 {
   bool Read();
   inline bool Reset() {return (bme280_soft_reset(&dev_) == BME280_OK);}
   inline double pres_pa() const {return data_.pressure;}
-  inline double temp_c() const {return data_.temperature;}
+  inline double die_temp_c() const {return data_.temperature;}
   inline double humidity_rh() const {return data_.humidity;}
 
  private:

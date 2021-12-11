@@ -25,21 +25,29 @@
 
 #include "bme280.h"
 
-bfs::Bme280 pres(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
-
-int t1, t2;
+/* BME-280 on Wire at the primary I2C address */
+bfs::Bme280 bme(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
 
 int main() {
+  /* Serial monitor for showing status and data */
   Serial.begin(115200);
   while (!Serial) {}
+  /* Initialize the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
-  pres.Begin();
+  /* Initialize the BME-280 */
+  if (!bme.Begin()) {
+    Serial.println("Error initializing communication with BME-280");
+    while (1) {}
+  }
   while (1) {
-    t1 = micros();
-    pres.Read();
-    t2 = micros();
-    Serial.println(t2 - t1);
-    delay(5);
+    if (bme.Read()) {
+      Serial.print(bme.pres_pa());
+      Serial.print("\t");
+      Serial.print(bme.die_temp_c());
+      Serial.print("\t");
+      Serial.println(bme.humidity_rh());
+    }
+    delay(100);
   }
 }

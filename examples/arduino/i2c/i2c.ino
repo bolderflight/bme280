@@ -25,28 +25,30 @@
 
 #include "bme280.h"
 
-/* A Bme280 object with I2C address 0x76 (SDO to GND) on I2C bus 0 */
-Bme280 bme(&Wire, 0x76);
+/* BME-280 on Wire at the primary I2C address */
+bfs::Bme280 bme(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
 
 void setup() {
-  /* Serial to display data */
+  /* Serial monitor for showing status and data */
   Serial.begin(115200);
-  while(!Serial){}
-
-  /* Begin communication */
+  while (!Serial) {}
+  /* Initialize the I2C bus */
+  Wire.begin();
+  Wire.setClock(400000);
+  /* Initialize the BME-280 */
   if (!bme.Begin()) {
-    Serial.println("Error communicating with sensor");
-    while(1){}
+    Serial.println("Error initializing communication with BME-280");
+    while (1) {}
   }
 }
 
 void loop() {
-  /* Read the sensor */
   if (bme.Read()) {
-    /* Displaying the data */
-    Serial.print(bme.pressure_pa(), 6);
+    Serial.print(bme.pres_pa());
     Serial.print("\t");
-    Serial.println(bme.die_temperature_c(), 2);
+    Serial.print(bme.die_temp_c());
+    Serial.print("\t");
+    Serial.println(bme.humidity_rh());
   }
   delay(100);
 }
