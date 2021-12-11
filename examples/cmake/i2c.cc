@@ -25,6 +25,21 @@
 
 #include "bme280.h"
 
-int main() {
+bfs::Bme280 pres(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
 
+int t1, t2;
+
+int main() {
+  Serial.begin(115200);
+  while (!Serial) {}
+  Wire.begin();
+  Wire.setClock(400000);
+  pres.Begin();
+  while (1) {
+    t1 = micros();
+    pres.Read();
+    t2 = micros();
+    Serial.println(t2 - t1);
+    delay(5);
+  }
 }
