@@ -116,7 +116,6 @@ bool Bme280::ConfigStandbyTime(const StandbyTime val) {
 
 bool Bme280::Read() {
   return (bme280_get_sensor_data(BME280_ALL, &data_, &dev_) == BME280_OK);
-  return true;
 }
 
 void Bme280::Delay_us(uint32_t period, void *intf_ptr) {

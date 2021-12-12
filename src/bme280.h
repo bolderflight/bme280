@@ -114,9 +114,6 @@ class Bme280 {
   } spi_intf_;
   /* SPI clock speed, 10 MHz */
   static constexpr int32_t SPI_CLK_ = 10000000;
-  /* Config */
-
-
   /* Function prototype for delaying, ms */
   static void Delay_us(uint32_t period, void *intf_ptr);
   /* Function prototypes for reading and writing I2C and SPI data */
