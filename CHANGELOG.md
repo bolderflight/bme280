@@ -1,41 +1,23 @@
 # Changelog
 
-## v4.1.0
-- Updated to work with *Pres* v1.2.0
-
-## v4.0.1
-- Added static_assert to check conformance to *Pres* interface
-
-## v4.0.0
-- Updated to conform to the *Pres* interface
-
-## v3.0.0
-- Updated to namespace *bfs*
+## v5.0.0
+- Merging Bme280 and Bme280-arduino
+- Pulling in CMake tooling from the mcu-support repo
+- Pulling in BST provided source files and wrapping with C++
 
 ## v2.0.1
-- Updated to support core v2.0.4
+- Put guards around digitalWriteFast to support microcontrollers that might not have that available
+- Switched std::size_t to int to support microcontrollers without STL access
 
 ## v2.0.0
-- Updating to better match style guide and make clear which methods are requesting the sensor to do something and which are simply acting like a class data member
-- Updated README with additional supported processors and updated methods
-
-## v1.0.5
-- Added support for Teensy 4.x
-
-## v1.0.4
-- Switched to SPI mode 3 for better interoperability with other sensors.
-
-## v1.0.3
-- SPI example was pointing to the I2C example source. Updated so the target and source match correctly.
+- Updated to match our [BME-280](https://github.com/bolderflight/bme280) library for flight software
+- Updated license to MIT
 
 ## v1.0.2
-- Updated CONTRIBUTING
-- Updated *fetch_content* from ssh to https to enable public access
-- Updated *flash_mcu.cmake* to use local loader on Linux
+- Updated license to GPLV3.
 
 ## v1.0.1
-- Updated license to MIT.
-- Used git tag to specify dependency version
+- Updating library.properties name.
 
 ## v1.0.0
-- Initial baseline.
+- Modified to work with Arduino 1.5 format and creating a baseline release now.
