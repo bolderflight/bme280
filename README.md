@@ -67,7 +67,7 @@ This library is within the namespace *bfs*.
 bfs::Bme280 bme280(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
 ```
 
-**Bme280(SPIClass *spi, const uint8_t cs)** Creates a Bme280 object. This constructor is used for the SPI communication interface. A pointer to the SPI bus object is passed along with the chip select pin of the sensor. Any pin capable of digital I/O can be used as a chip select pin.
+**Bme280(SPIClass &ast;spi, const uint8_t cs)** Creates a Bme280 object. This constructor is used for the SPI communication interface. A pointer to the SPI bus object is passed along with the chip select pin of the sensor. Any pin capable of digital I/O can be used as a chip select pin.
 
 ```C++
 bfs::Bme280 bme280(&SPI, 2);
