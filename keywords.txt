@@ -4,13 +4,17 @@ ConfigTempOversampling	KEYWORD2
 temp_oversampling	KEYWORD2
 ConfigPresOversampling	KEYWORD2
 pres_oversampling	KEYWORD2
+ConfigHumidityOversampling	KEYWORD2
+humidity_oversampling	KEYWORD2
 ConfigFilterCoef	KEYWORD2
 filter_coef	KEYWORD2
 ConfigStandbyTime	KEYWORD2
 standby_time	KEYWORD2
 Read	KEYWORD2
+Reset	KEYWORD2
 pres_pa	KEYWORD2
 die_temp_c	KEYWORD2
+humidity_rh	KEYWORD2
 I2cAddr	KEYWORD1
 I2C_ADDR_PRIM	LITERAL1
 I2C_ADDR_SEC	LITERAL1

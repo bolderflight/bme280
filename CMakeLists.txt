@@ -55,7 +55,7 @@ if (DEFINED MCU)
     )
     # Link libraries to the example target
     target_link_libraries(i2c_example
-      PRIVATE 
+      PRIVATE
         bme280
     )
     # Add hex and upload targets
@@ -71,7 +71,7 @@ if (DEFINED MCU)
     )
     # Link libraries to the example target
     target_link_libraries(spi_example
-      PRIVATE 
+      PRIVATE
         bme280
     )
     # Add hex and upload targets
