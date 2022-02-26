@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.1.0
+- Added default constructor and a config method for configuring the sensor
+
 ## v5.0.0
 - Merging Bme280 and Bme280-arduino
 - Pulling in CMake tooling from the mcu-support repo

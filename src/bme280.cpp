@@ -57,6 +57,27 @@ Bme280::Bme280(SPIClass *spi, const uint8_t cs) {
   dev_.delay_us = Delay_us;
 }
 
+void Bme280::Config(TwoWire *i2c, const I2cAddr addr) {
+  i2c_intf_.i2c = i2c;
+  i2c_intf_.addr = static_cast<uint8_t>(addr);
+  dev_.intf_ptr = &i2c_intf_;
+  dev_.intf = BME280_I2C_INTF;
+  dev_.read = I2cReadRegisters;
+  dev_.write = I2cWriteRegisters;
+  dev_.delay_us = Delay_us;
+}
+
+void Bme280::Config(SPIClass *spi, const uint8_t cs) {
+  pinMode(cs, OUTPUT);
+  spi_intf_.spi = spi;
+  spi_intf_.cs = cs;
+  dev_.intf_ptr = &spi_intf_;
+  dev_.intf = BME280_SPI_INTF;
+  dev_.read = SpiReadRegisters;
+  dev_.write = SpiWriteRegisters;
+  dev_.delay_us = Delay_us;
+}
+
 bool Bme280::Begin() {
   /* Initialize communication */
   if (bme280_init(&dev_) != BME280_OK) {

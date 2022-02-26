@@ -25,8 +25,8 @@
 
 #include "bme280.h"
 
-/* BME-280 on Wire at the primary I2C address */
-bfs::Bme280 bme(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
+/* BME-280 */
+bfs::Bme280 bme;
 
 void setup() {
   /* Serial monitor for showing status and data */
@@ -35,6 +35,8 @@ void setup() {
   /* Initialize the I2C bus */
   Wire.begin();
   Wire.setClock(400000);
+  /* Wire at the primary I2C address */
+  bme.Config(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
   /* Initialize the BME-280 */
   if (!bme.Begin()) {
     Serial.println("Error initializing communication with BME-280");

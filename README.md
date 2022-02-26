@@ -61,6 +61,8 @@ This library is within the namespace *bfs*.
 
 ## Methods
 
+**Bme280()** Default constructor, requires calling the Config method to setup the I2C or SPI bus and I2C address or SPI chip select pin.
+
 **Bme280(TwoWire &ast;i2c, const I2cAddr addr)** Creates a Bme280 object. This constructor is used for the I2C communication interface. A pointer to the I2C bus object is passed along with an enum of the I2C address of the sensor. Use I2C_ADDR_PRIM if the SDO pin is grounded and I2C_ADDR_SEC if the SDO pin is pulled high.
 
 ```C++
@@ -72,6 +74,10 @@ bfs::Bme280 bme280(&Wire, bfs::Bme280::I2C_ADDR_PRIM);
 ```C++
 bfs::Bme280 bme280(&SPI, 2);
 ```
+
+**void Config(TwoWire &ast;bus, const I2cAddr addr)** This is required when using the default constructor and sets up the I2C bus and I2C address.
+
+**void Config(SPIClass &ast;spi, const uint8_t cs)** This is required when using the default constructor and sets up the SPI bus and chip select pin.
 
 **bool Begin()** Initializes communication with the sensor and configures the default sampling rates, oversampling and low pass filter settings. True is returned if communication is able to be established with the sensor and configuration completes successfully, otherwise, false is returned. The communication bus is not initialized within this library and must be initialized seperately; this enhances compatibility with other sensors that may on the same bus.
 

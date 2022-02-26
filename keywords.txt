@@ -1,4 +1,5 @@
 Bme280	KEYWORD1
+Config	KEYWORD2
 Begin	KEYWORD2
 ConfigTempOversampling	KEYWORD2
 temp_oversampling	KEYWORD2

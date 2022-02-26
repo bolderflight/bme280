@@ -23,8 +23,8 @@
 * IN THE SOFTWARE.
 */
 
-#ifndef SRC_BME280_H_
-#define SRC_BME280_H_
+#ifndef BME280_SRC_BME280_H_  // NOLINT
+#define BME280_SRC_BME280_H_
 
 #if defined(ARDUINO)
 #include <Arduino.h>
@@ -69,8 +69,11 @@ class Bme280 {
     STANDBY_TIME_10_MS = BME280_STANDBY_TIME_10_MS,
     STANDBY_TIME_20_MS = BME280_STANDBY_TIME_20_MS
   };
+  Bme280() {}
   Bme280(TwoWire *i2c, const I2cAddr addr);
   Bme280(SPIClass *spi, const uint8_t cs);
+  void Config(TwoWire *i2c, const I2cAddr addr);
+  void Config(SPIClass *spi, const uint8_t cs);
   bool Begin();
   bool ConfigTempOversampling(const Oversampling val);
   bool ConfigPresOversampling(const Oversampling val);
@@ -129,4 +132,4 @@ class Bme280 {
 
 }  // namespace bfs
 
-#endif  // SRC_BME280_H_
+#endif  // BME280_SRC_BME280_H_ NOLINT
