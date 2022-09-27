@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.1
+- Added fix in includes to support Arduino AVR
+
 ## v5.2.0
 - Added CMake Teensy MMOD support
 

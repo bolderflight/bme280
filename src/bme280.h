@@ -31,10 +31,10 @@
 #include "Wire.h"
 #include "SPI.h"
 #else
+#include <cstddef>
+#include <cstdint>
 #include "core/core.h"
 #endif
-#include <stddef.h>
-#include <stdint.h>
 #include "bst/bme280.h"
 
 namespace bfs {
