@@ -1,4 +1,4 @@
-[![Pipeline](https://gitlab.com/bolderflight/software/bme280/badges/main/pipeline.svg)](https://gitlab.com/bolderflight/software/bme280/) [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 ![Bolder Flight Systems Logo](img/logo-words_75.png) &nbsp; &nbsp; ![Arduino Logo](img/arduino_logo_75.png)
 
