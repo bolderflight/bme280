@@ -5,14 +5,14 @@ if (DEFINED MCU)
   FetchContent_Declare(
     mcu_support
     GIT_REPOSITORY https://github.com/bolderflight/mcu-support.git
-    GIT_TAG v1.0.0
+    GIT_TAG v1.1.0
   )
   FetchContent_MakeAvailable(mcu_support)
   # Setting up the toolchain
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
   # Project information
   project(Bme280
-    VERSION 5.1.0
+    VERSION 5.2.0
     DESCRIPTION "BME-280 sensor driver"
     LANGUAGES C CXX
   )
@@ -23,7 +23,7 @@ if (DEFINED MCU)
   FetchContent_Declare(
     core
     GIT_REPOSITORY https://github.com/bolderflight/core.git
-    GIT_TAG v3.0.2
+    GIT_TAG v3.1.0
   )
   FetchContent_MakeAvailable(core)
   # Add the library target
@@ -37,7 +37,7 @@ if (DEFINED MCU)
   # Link libraries
   target_link_libraries(bme280
     PUBLIC
-    core
+      core
   )
   # Setup include directories 
   target_include_directories(bme280 PUBLIC 

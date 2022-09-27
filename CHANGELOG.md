@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.0
+- Added CMake Teensy MMOD support
+
 ## v5.1.0
 - Added default constructor and a config method for configuring the sensor
 
