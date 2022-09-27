@@ -49,6 +49,7 @@ This will build the library and example executables called *i2c_example* and *sp
    * MKL26Z64
    * IMXRT1062_T40
    * IMXRT1062_T41
+   * IMXRT1062_MMOD
 
 These are known to work with the same packages used in Teensy products. Also switching packages is known to work well, as long as it's only a package change.
 
