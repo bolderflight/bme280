@@ -47,7 +47,6 @@ Bme280::Bme280(TwoWire *i2c, const I2cAddr addr) {
 }
 
 Bme280::Bme280(SPIClass *spi, const uint8_t cs) {
-  pinMode(cs, OUTPUT);
   spi_intf_.spi = spi;
   spi_intf_.cs = cs;
   dev_.intf_ptr = &spi_intf_;
@@ -68,7 +67,6 @@ void Bme280::Config(TwoWire *i2c, const I2cAddr addr) {
 }
 
 void Bme280::Config(SPIClass *spi, const uint8_t cs) {
-  pinMode(cs, OUTPUT);
   spi_intf_.spi = spi;
   spi_intf_.cs = cs;
   dev_.intf_ptr = &spi_intf_;
@@ -79,6 +77,9 @@ void Bme280::Config(SPIClass *spi, const uint8_t cs) {
 }
 
 bool Bme280::Begin() {
+  if (dev_.intf == BME280_SPI_INTF) {
+    pinMode(spi_intf_.cs, OUTPUT);
+  }
   /* Initialize communication */
   if (bme280_init(&dev_) != BME280_OK) {
     return false;

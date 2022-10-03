@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.3
+- Moved pinMode to Begin
+
 ## v5.2.2
 - Fixed bug in Config return values
 
