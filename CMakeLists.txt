@@ -12,7 +12,7 @@ if (DEFINED MCU)
   set(CMAKE_TOOLCHAIN_FILE "${mcu_support_SOURCE_DIR}/cmake/cortex.cmake")
   # Project information
   project(Bme280
-    VERSION 5.2.1
+    VERSION 5.2.2
     DESCRIPTION "BME-280 sensor driver"
     LANGUAGES C CXX
   )

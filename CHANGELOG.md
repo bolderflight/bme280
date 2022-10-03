@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.2
+- Fixed bug in Config return values
+
 ## v5.2.1
 - Added fix in includes to support Arduino AVR
 

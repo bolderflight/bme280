@@ -108,31 +108,31 @@ bool Bme280::Begin() {
 bool Bme280::ConfigTempOversampling(const Oversampling val) {
   dev_.settings.osr_t = static_cast<uint8_t>(val);
   uint8_t settings_sel = BME280_OSR_TEMP_SEL;
-  return (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK);
+  return (bme280_set_sensor_settings(settings_sel, &dev_) == BME280_OK);
 }
 
 bool Bme280::ConfigPresOversampling(const Oversampling val) {
   dev_.settings.osr_p = static_cast<uint8_t>(val);
   uint8_t settings_sel = BME280_OSR_PRESS_SEL;
-  return (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK);
+  return (bme280_set_sensor_settings(settings_sel, &dev_) == BME280_OK);
 }
 
 bool Bme280::ConfigHumidityOversampling(const Oversampling val) {
   dev_.settings.osr_h = static_cast<uint8_t>(val);
   uint8_t settings_sel = BME280_OSR_HUM_SEL;
-  return (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK);
+  return (bme280_set_sensor_settings(settings_sel, &dev_) == BME280_OK);
 }
 
 bool Bme280::ConfigFilterCoef(const FilterCoef val) {
   dev_.settings.filter = static_cast<uint8_t>(val);
   uint8_t settings_sel = BME280_FILTER_SEL;
-  return (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK);
+  return (bme280_set_sensor_settings(settings_sel, &dev_) == BME280_OK);
 }
 
 bool Bme280::ConfigStandbyTime(const StandbyTime val) {
   dev_.settings.standby_time = static_cast<uint8_t>(val);
   uint8_t settings_sel = BME280_STANDBY_SEL;
-  return (bme280_set_sensor_settings(settings_sel, &dev_) != BME280_OK);
+  return (bme280_set_sensor_settings(settings_sel, &dev_) == BME280_OK);
 }
 
 bool Bme280::Read() {
