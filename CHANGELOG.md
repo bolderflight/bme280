@@ -1,5 +1,8 @@
 # Changelog
 
+## 5.2.4
+- Update core to support MMOD
+
 ## v5.2.3
 - Moved pinMode to Begin
 
