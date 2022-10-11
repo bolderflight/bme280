@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.6
+- Updated core to v3.1.3
+
 ## 5.2.5
 - Updated core to v3.1.2
 
